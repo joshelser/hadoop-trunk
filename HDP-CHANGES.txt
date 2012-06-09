@@ -67,3 +67,4 @@ Bianchi (Bimota Patch release)
     HDFS-4222. NN is unresponsive and loses heartbeats from DNs when 
     configured to use LDAP and LDAP has issues. (Xiaobo Peng, suresh)
 
+    HDFS-3515. Port HDFS-1457 to branch-1. (eli)
