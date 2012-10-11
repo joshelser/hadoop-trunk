@@ -75,3 +75,6 @@ Bianchi (Bimota Patch release)
     MAPREDUCE-2217. The expire launching task should cover the UNASSIGNED task. 
     (schen and kkambatl via tucu)
 
+    MAPREDUCE-4451. fairscheduler fail to init job with kerberos authentication 
+    configured. (erik.fang via tucu)
+
