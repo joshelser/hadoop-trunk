@@ -651,7 +651,7 @@ public class NameNode implements ClientProtocol, DatanodeProtocol,
                              ) throws IOException {
     String clientMachine = getClientMachine();
     if (stateChangeLog.isDebugEnabled()) {
-      stateChangeLog.debug("*DIR* NameNode.create: file "
+      stateChangeLog.debug("*DIR* NameNode.create: "
                          +src+" for "+clientName+" at "+clientMachine);
     }
     if (!checkPathLength(src)) {
@@ -670,7 +670,7 @@ public class NameNode implements ClientProtocol, DatanodeProtocol,
   public LocatedBlock append(String src, String clientName) throws IOException {
     String clientMachine = getClientMachine();
     if (stateChangeLog.isDebugEnabled()) {
-      stateChangeLog.debug("*DIR* NameNode.append: file "
+      stateChangeLog.debug("*DIR* NameNode.append: "
           +src+" for "+clientName+" at "+clientMachine);
     }
     LocatedBlock info = namesystem.appendFile(src, clientName, clientMachine);
@@ -724,7 +724,7 @@ public class NameNode implements ClientProtocol, DatanodeProtocol,
         Arrays.<Node>asList(excludedNodes));
     }
 
-    stateChangeLog.debug("*BLOCK* NameNode.addBlock: file "
+    stateChangeLog.debug("*BLOCK* NameNode.addBlock: "
                          +src+" for "+clientName);
     LocatedBlock locatedBlock = namesystem.getAdditionalBlock(
       src, clientName, excludedNodeList);
@@ -739,7 +739,7 @@ public class NameNode implements ClientProtocol, DatanodeProtocol,
   public void abandonBlock(Block b, String src, String holder
       ) throws IOException {
     stateChangeLog.debug("*BLOCK* NameNode.abandonBlock: "
-                         +b+" of file "+src);
+                         +b+" of "+src);
     if (!namesystem.abandonBlock(b, src, holder)) {
       throw new IOException("Cannot abandon block during write to " + src);
     }
@@ -754,7 +754,7 @@ public class NameNode implements ClientProtocol, DatanodeProtocol,
     } else if (returnCode == CompleteFileStatus.COMPLETE_SUCCESS) {
       return true;
     } else {
-      throw new IOException("Could not complete write to file " + src + " by " + clientName);
+      throw new IOException("Could not complete write to " + src + " by " + clientName);
     }
   }
 

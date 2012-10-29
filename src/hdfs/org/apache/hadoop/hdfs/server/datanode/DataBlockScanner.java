@@ -261,7 +261,7 @@ class DataBlockScanner implements Runnable {
     
     BlockScanInfo info = blockMap.get(block);
     if ( info != null ) {
-      LOG.warn("Adding an already existing block " + block);
+      LOG.warn("Adding an already existing " + block);
       delBlockInfo(info);
     }
     
@@ -368,8 +368,7 @@ class DataBlockScanner implements Runnable {
   }
   
   private void handleScanFailure(Block block) {
-    
-    LOG.info("Reporting bad block " + block + " to namenode.");
+    LOG.info("Reporting bad " + block + " to namenode.");
     
     try {
       DatanodeInfo[] dnArr = { new DatanodeInfo(datanode.dnRegistration) };
@@ -379,7 +378,7 @@ class DataBlockScanner implements Runnable {
       /* One common reason is that NameNode could be in safe mode.
        * Should we keep on retrying in that case?
        */
-      LOG.warn("Failed to report bad block " + block + " to namenode : " +
+      LOG.warn("Failed to report bad " + block + " to namenode : " +
                " Exception : " + StringUtils.stringifyException(e));
     }
   }
@@ -459,8 +458,8 @@ class DataBlockScanner implements Runnable {
         
         blockSender.sendBlock(out, null, throttler);
 
-        LOG.info((second ? "Second " : "") +
-                 "Verification succeeded for " + block);
+        LOG.info((second ? "Second verification" : "Verification") +
+                 " succeeded " + block);
         
         if ( second ) {
           totalTransientErrors++;
@@ -476,8 +475,8 @@ class DataBlockScanner implements Runnable {
 
         // If the block does not exists anymore, then its not an error
         if ( dataset.getFile(block) == null ) {
-          LOG.info("Verification failed for " + block + ". Its ok since " +
-          "it not in datanode dataset anymore.");
+          LOG.info("Verification failed for " + block + ". Its ok since "
+              + "it is not in datanode dataset anymore.");
           deleteBlock(block);
           return;
         }
@@ -628,7 +627,7 @@ class DataBlockScanner implements Runnable {
       throw e;
     } finally {
       shutdown();
-      LOG.info("Exiting DataBlockScanner thread.");
+      LOG.info("Exiting DataBlockScanner thread");
     }
   }
   
