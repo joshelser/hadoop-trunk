@@ -306,8 +306,8 @@ public class AuthenticationFilter implements Filter {
       if (!token.getType().equals(authHandler.getType())) {
         throw new AuthenticationException("Invalid AuthenticationToken type");
       }
-      if (token.isExpired()) {
-        throw new AuthenticationException("AuthenticationToken expired");
+      if (LOG.isDebugEnabled() && token.isExpired ()) {
+        LOG.debug("Authentication Token expired");
       }
     }
     return token;
@@ -332,7 +332,8 @@ public class AuthenticationFilter implements Filter {
     try {
       boolean newToken = false;
       AuthenticationToken token = getToken(httpRequest);
-      if (token == null) {
+
+      if (token == null || token.isExpired ())  {
         if (LOG.isDebugEnabled()) {
           LOG.debug("Request [{}] triggering authentication", getRequestURL(httpRequest));
         }
@@ -372,16 +373,24 @@ public class AuthenticationFilter implements Filter {
         filterChain.doFilter(httpRequest, httpResponse);
       }
     } catch (AuthenticationException ex) {
-      if (!httpResponse.isCommitted()) {
-        Cookie cookie = createCookie("");
-        cookie.setMaxAge(0);
-        httpResponse.addCookie(cookie);
-        httpResponse.sendError(HttpServletResponse.SC_UNAUTHORIZED, ex.getMessage());
-      }
+      removeCookie (httpResponse);
+      httpResponse.sendError(HttpServletResponse.SC_UNAUTHORIZED, ex.getMessage());
       LOG.warn("Authentication exception: " + ex.getMessage(), ex);
     }
   }
 
+  /** 
+   * Removes the cookie 
+   */
+
+  private void removeCookie (HttpServletResponse httpResponse)
+  throws IOException{
+    if (!httpResponse.isCommitted()) {
+      Cookie cookie = createCookie("");
+      cookie.setMaxAge(0);
+      httpResponse.addCookie(cookie);
+    }	
+  }
   /**
    * Creates the Hadoop authentiation HTTP cookie.
    * <p/>
