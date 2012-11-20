@@ -186,7 +186,10 @@
       <os arch="x86" />
     </or>
   </condition>
-  <property name="jsvc.location" value="http://archive.apache.org/dist/commons/daemon/binaries/1.0.2/linux/commons-daemon-1.0.2-bin-linux-${os-arch}.tar.gz" />
+  
+  <property name="jsvc.server.url" value="http://archive.apache.org" />  
+  <property name="jsvc.url" value="${jsvc.server.url}/dist/commons/daemon/binaries/1.0.2/linux" />
+  <property name="jsvc.location" value="${jsvc.url}/commons-daemon-1.0.2-bin-linux-${os-arch}.tar.gz" />
   <property name="jsvc.dest.name" value="jsvc.${os.arch}.tar.gz" />
 
   <!-- task-controller properties set here -->
@@ -2798,7 +2801,7 @@
 
   <target name="jsvc" >
     <mkdir dir="${jsvc.build.dir}" />
-    <get src="${jsvc.location}" dest="${jsvc.build.dir}/${jsvc.dest.name}" />
+    <get src="${jsvc.location}" dest="${jsvc.build.dir}/${jsvc.dest.name}" verbose="true" maxtime="300" retries="10"/>
 
     <untar compression="gzip" src="${jsvc.build.dir}/${jsvc.dest.name}" dest="${jsvc.build.dir}" />
 
