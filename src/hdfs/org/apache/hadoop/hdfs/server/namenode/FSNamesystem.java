@@ -2120,12 +2120,8 @@ public class FSNamesystem implements FSConstants, FSNamesystemMBean,
     removeBlocks(collectedBlocks); // Incremental deletion of blocks
     collectedBlocks.clear();
     if (NameNode.stateChangeLog.isDebugEnabled()) {
-<<<<<<< HEAD
-      NameNode.stateChangeLog.debug("DIR* Namesystem.delete: " + src
+      NameNode.stateChangeLog.debug("DIR* delete: " + src
           + " is removed");
-=======
-      NameNode.stateChangeLog.debug("DIR* delete: " + src);
->>>>>>> 278bf93... RMP-73/HDFS-4122. Cleanup HDFS logs and reduce the size of logged messages.
     }
     return true;
   }
