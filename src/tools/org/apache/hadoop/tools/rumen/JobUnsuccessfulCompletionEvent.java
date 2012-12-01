@@ -66,5 +66,9 @@ public class JobUnsuccessfulCompletionEvent implements HistoryEvent {
     } else
       return EventType.JOB_KILLED;
   }
+  @Override
+  public String toString() {
+    return getEventType() + ":" + getJobId() + ":" + finishTime;
+  }
 
 }

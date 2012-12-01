@@ -90,5 +90,9 @@ public class MapAttemptFinishedEvent  implements HistoryEvent {
    public EventType getEventType() {
     return EventType.MAP_ATTEMPT_FINISHED;
   }
-  
+  @Override
+  public String toString() {
+    return getEventType() + ":" + taskId.getJobID() + ":" + finishTime;
+  }
+
 }

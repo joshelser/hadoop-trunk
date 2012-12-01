@@ -9,6 +9,9 @@ Bimota-1.1.1 branched from Apache Release Tag: release-1.1.1-rc0
 
   IMPROVEMENTS
 
+  MAPREDUCE-4838. Add locality, avataar & workflow information to JobHistory.
+  (acmurthy)
+
   MAPREDUCE-4837. Add web-service apis for JobTracker to get information on
   jobs and component tasks. (Varun Kapoor and Billie Rinaldi via acmurthy)
 

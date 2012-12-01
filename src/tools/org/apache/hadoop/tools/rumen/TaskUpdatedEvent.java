@@ -46,5 +46,10 @@ public class TaskUpdatedEvent implements HistoryEvent {
   public EventType getEventType() {
     return EventType.TASK_UPDATED;
   }
+  @Override
+  public String toString() {
+    return getEventType() + ":" + taskId.getJobID() + ":" + 
+      taskId + ":" + finishTime;
+  }
 
 }

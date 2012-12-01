@@ -98,6 +98,9 @@ public class ReduceAttemptFinishedEvent  implements HistoryEvent {
   public EventType getEventType() {
     return EventType.REDUCE_ATTEMPT_FINISHED;
   }
-
+  @Override
+  public String toString() {
+    return getEventType() + ":" + taskId.getJobID() + ":" + finishTime;
+  }
 
 }

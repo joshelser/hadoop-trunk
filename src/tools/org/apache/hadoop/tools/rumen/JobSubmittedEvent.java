@@ -38,6 +38,10 @@ public class JobSubmittedEvent implements HistoryEvent {
   private String jobConfPath;
   private Map<JobACL, AccessControlList> jobAcls;
   private String queue;
+  private String workflowId;
+  private String workflowName;
+  private String workflowNodeName;
+  private String workflowAdjacencies;
 
   /**
    * @deprecated Use
@@ -49,7 +53,7 @@ public class JobSubmittedEvent implements HistoryEvent {
   public JobSubmittedEvent(JobID id, String jobName, String userName,
       long submitTime, String jobConfPath) {
     this(id, jobName, userName, submitTime, jobConfPath,
-        new HashMap<JobACL, AccessControlList>(), null);
+        new HashMap<JobACL, AccessControlList>(), null, "", "", "", "");
   }
 
   /**
@@ -62,7 +66,8 @@ public class JobSubmittedEvent implements HistoryEvent {
   public JobSubmittedEvent(JobID id, String jobName, String userName,
       long submitTime, String jobConfPath,
       Map<JobACL, AccessControlList> jobACLs) {
-    this(id, jobName, userName, submitTime, jobConfPath, jobACLs, null);
+    this(id, jobName, userName, submitTime, jobConfPath, jobACLs, null, 
+        "", "", "", "");
   }
 
   /**
@@ -77,7 +82,9 @@ public class JobSubmittedEvent implements HistoryEvent {
    */
   public JobSubmittedEvent(JobID id, String jobName, String userName,
       long submitTime, String jobConfPath,
-      Map<JobACL, AccessControlList> jobACLs, String queue) {
+      Map<JobACL, AccessControlList> jobACLs, String queue,
+      String workflowId, String workflowName, String workflowNodeName,
+      String workflowAdjacencies) {
     this.jobId = id;
     this.jobName = jobName;
     this.userName = userName;
@@ -85,6 +92,10 @@ public class JobSubmittedEvent implements HistoryEvent {
     this.jobConfPath = jobConfPath;
     this.jobAcls = jobACLs;
     this.queue = queue;
+    this.workflowId = workflowId;
+    this.workflowName = workflowName;
+    this.workflowNodeName = workflowNodeName;
+    this.workflowAdjacencies = workflowAdjacencies;
   }
 
   /** Get the Job Id */
@@ -106,7 +117,27 @@ public class JobSubmittedEvent implements HistoryEvent {
     return queue;
   }
 
+  public String getWorkflowId() {
+    return workflowId;
+  }
+
+  public String getWorkflowName() {
+    return workflowName;
+  }
+
+  public String getWorkflowNodeName() {
+    return workflowNodeName;
+  }
+
+  public String getWorkflowAdjacencies() {
+    return workflowAdjacencies;
+  }
+
   /** Get the event type */
   public EventType getEventType() { return EventType.JOB_SUBMITTED; }
 
+  @Override
+  public String toString() {
+    return getEventType() + ":" + getJobId() + ":" + submitTime;
+  }
 }

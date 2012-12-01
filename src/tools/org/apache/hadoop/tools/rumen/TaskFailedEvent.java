@@ -73,5 +73,10 @@ public class TaskFailedEvent implements HistoryEvent {
   /** Get the event type */
   public EventType getEventType() { return EventType.TASK_FAILED; }
 
-  
+
+  @Override
+  public String toString() {
+    return getEventType() + ":" + taskId.getJobID() + ":" + 
+      taskId + ":" + finishTime;
+  }
 }

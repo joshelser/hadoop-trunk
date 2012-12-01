@@ -62,5 +62,8 @@ public class JobInitedEvent implements HistoryEvent {
   public EventType getEventType() {
     return EventType.JOB_INITED;
   }
-
+  @Override
+  public String toString() {
+    return getEventType() + ":" + getJobId() + ":" + launchTime;
+  }
 }

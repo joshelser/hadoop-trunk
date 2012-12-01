@@ -66,6 +66,10 @@ public class Job20LineHistoryEventEmitter extends HistoryEventEmitter {
       String user = line.get("USER");
       String jobName = line.get("JOBNAME");
       String queueName = line.get("JOB_QUEUE");
+      String workflowId = line.get("WORKFLOW_ID");
+      String workflowName = line.get("WORKFLOW_NAME");
+      String workflowNodeName = line.get("WORKFLOW_NODE_NAME");
+      String workflowAdjacencies = line.get("WORKFLOW_ADJACENCIES");
 
       if (submitTime != null) {
         Job20LineHistoryEventEmitter that =
@@ -75,8 +79,13 @@ public class Job20LineHistoryEventEmitter extends HistoryEventEmitter {
 
         Map<JobACL, AccessControlList> jobACLs =
           new HashMap<JobACL, AccessControlList>();
-        return new JobSubmittedEvent(jobID, jobName, user == null ? "nulluser"
-            : user, that.originalSubmitTime, jobConf, jobACLs, queueName);
+        return 
+            new JobSubmittedEvent(
+                jobID, jobName, 
+                user == null ? "nulluser" : user, 
+                that.originalSubmitTime, jobConf, jobACLs, queueName, 
+                workflowId, workflowName, workflowNodeName,
+                workflowAdjacencies);
       }
 
       return null;

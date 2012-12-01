@@ -69,5 +69,10 @@ public class TaskFinishedEvent implements HistoryEvent {
     return EventType.TASK_FINISHED;
   }
 
+  @Override
+  public String toString() {
+    return EventType.TASK_FINISHED + ":" + taskId.getJobID() + ":" + 
+      taskId + ":" + finishTime;
+  }
   
 }

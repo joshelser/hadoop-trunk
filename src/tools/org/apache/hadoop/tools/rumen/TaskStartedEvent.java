@@ -61,4 +61,9 @@ public class TaskStartedEvent implements HistoryEvent {
     return EventType.TASK_STARTED;
   }
 
+  @Override
+  public String toString() {
+    return getEventType() + ":" + taskId.getJobID() + ":" + 
+      taskId + ":" + startTime;
+  }
 }

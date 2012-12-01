@@ -35,7 +35,9 @@ public class TaskAttemptStartedEvent implements HistoryEvent {
   private TaskType taskType;
   private String trackerName;
   private int httpPort;
-
+  private String locality;
+  private String avataar;
+  
   /**
    * Create an event to record the start of an attempt
    * @param attemptId Id of the attempt
@@ -46,13 +48,15 @@ public class TaskAttemptStartedEvent implements HistoryEvent {
    */
   public TaskAttemptStartedEvent( TaskAttemptID attemptId,  
       TaskType taskType, long startTime, String trackerName,
-      int httpPort) {
+      int httpPort, String locality, String avataar) {
     this.taskId = attemptId.getTaskID();
     this.attemptId = attemptId;
     this.startTime = startTime;
     this.taskType = taskType;
     this.trackerName = trackerName;
     this.httpPort = httpPort;
+    this.locality = locality;
+    this.avataar = avataar;
   }
 
   /** Get the task id */
@@ -71,9 +75,28 @@ public class TaskAttemptStartedEvent implements HistoryEvent {
   public TaskAttemptID getTaskAttemptId() {
     return attemptId;
   }
-  /** Get the event type */
-  public EventType getEventType() {
-    return EventType.MAP_ATTEMPT_STARTED;
+  public String getLocality() {
+    return locality;
   }
 
+  public String getAvataar() {
+    return avataar;
+  }
+
+  /** Get the event type */
+  public EventType getEventType() {
+    if (taskType == TaskType.JOB_SETUP) {
+      return EventType.SETUP_ATTEMPT_STARTED;
+    } else if (taskType == TaskType.JOB_CLEANUP) {
+      return EventType.CLEANUP_ATTEMPT_STARTED;
+    }
+    return attemptId.isMap() ? 
+        EventType.MAP_ATTEMPT_STARTED : EventType.REDUCE_ATTEMPT_STARTED;
+  }
+
+  @Override
+  public String toString() {
+    return getEventType() + ":" + taskId.getJobID() + ":" + 
+      taskId + ":" + startTime;
+  }
 }

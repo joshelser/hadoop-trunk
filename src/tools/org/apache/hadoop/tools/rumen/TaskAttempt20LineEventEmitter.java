@@ -61,6 +61,8 @@ public abstract class TaskAttempt20LineEventEmitter extends HistoryEventEmitter 
       String taskType = line.get("TASK_TYPE");
       String trackerName = line.get("TRACKER_NAME");
       String httpPort = line.get("HTTP_PORT");
+      String locality = line.get("LOCALITY");
+      String avataar = line.get("AVATAAR");
 
       if (startTime != null && taskType != null) {
         TaskAttempt20LineEventEmitter that =
@@ -75,7 +77,8 @@ public abstract class TaskAttempt20LineEventEmitter extends HistoryEventEmitter 
                 .parseInt(httpPort);
 
         return new TaskAttemptStartedEvent(taskAttemptID,
-            that.originalTaskType, that.originalStartTime, trackerName, port);
+            that.originalTaskType, that.originalStartTime, trackerName, port,
+            locality, avataar);
       }
 
       return null;

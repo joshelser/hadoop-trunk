@@ -34,7 +34,8 @@ public class TaskAttemptUnsuccessfulCompletionEvent implements HistoryEvent {
   private String hostname;
   private String error;
   private String status;
-
+  private EventType eventType;
+  
   /** 
    * Create an event to record the unsuccessful completion of attempts
    * @param id Attempt ID
@@ -55,6 +56,24 @@ public class TaskAttemptUnsuccessfulCompletionEvent implements HistoryEvent {
     this.hostname = hostname;
     this.error = error;
     this.status = status;
+    
+    if (status.compareTo("FAILED") == 0) {
+      if (taskType == TaskType.JOB_SETUP) {
+        eventType = EventType.SETUP_ATTEMPT_FAILED;
+      } else if (taskType == TaskType.JOB_CLEANUP) {
+        eventType = EventType.CLEANUP_ATTEMPT_FAILED;
+      }
+      eventType = attemptId.isMap() ? 
+          EventType.MAP_ATTEMPT_FAILED : EventType.REDUCE_ATTEMPT_FAILED;
+    } else {
+      if (taskType == TaskType.JOB_SETUP) {
+        eventType = EventType.SETUP_ATTEMPT_KILLED;
+      } else if (taskType == TaskType.JOB_CLEANUP) {
+        eventType = EventType.CLEANUP_ATTEMPT_KILLED;
+      }
+      eventType = attemptId.isMap() ? 
+          EventType.MAP_ATTEMPT_KILLED : EventType.REDUCE_ATTEMPT_KILLED;
+    }
   }
 
   /** Get the task id */
@@ -77,7 +96,12 @@ public class TaskAttemptUnsuccessfulCompletionEvent implements HistoryEvent {
   public String getTaskStatus() { return status; }
   /** Get the event type */
   public EventType getEventType() {
-    return EventType.MAP_ATTEMPT_KILLED;
+    return eventType;
+  }
+  @Override
+  public String toString() {
+    return getEventType() + ":" + taskId.getJobID() + ":" + 
+      taskId + ":" + finishTime;
   }
 
 }

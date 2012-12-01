@@ -46,4 +46,8 @@ public class JobStatusChangedEvent implements HistoryEvent {
     return EventType.JOB_STATUS_CHANGED;
   }
 
+  @Override
+  public String toString() {
+    return getEventType() + ":" + getJobId() + ":" + jobStatus;
+  }
 }

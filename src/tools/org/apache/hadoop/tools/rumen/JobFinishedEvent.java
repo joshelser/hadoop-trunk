@@ -94,4 +94,8 @@ public class JobFinishedEvent  implements HistoryEvent {
   public Counters getReduceCounters() {
     return reduceCounters;
   }
+  @Override
+  public String toString() {
+    return getEventType() + ":" + getJobid() + ":" + finishTime;
+  }
 }

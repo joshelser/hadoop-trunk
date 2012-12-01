@@ -18,6 +18,7 @@
 package org.apache.hadoop.mapred;
 
 import java.io.IOException;
+import java.net.UnknownHostException;
 import java.security.PrivilegedExceptionAction;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -36,7 +37,6 @@ import java.util.SortedSet;
 import java.util.TreeMap;
 import java.util.TreeSet;
 import java.util.Vector;
-import java.net.UnknownHostException;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -47,7 +47,6 @@ import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.io.Text;
 import org.apache.hadoop.mapred.CleanupQueue.PathDeletionContext;
 import org.apache.hadoop.mapred.Counters.CountersExceededException;
-import org.apache.hadoop.mapred.Counters.Group;
 import org.apache.hadoop.mapred.JobHistory.Values;
 import org.apache.hadoop.mapreduce.JobContext;
 import org.apache.hadoop.mapreduce.JobSubmissionFiles;
@@ -57,8 +56,8 @@ import org.apache.hadoop.mapreduce.security.token.DelegationTokenRenewal;
 import org.apache.hadoop.mapreduce.security.token.JobTokenIdentifier;
 import org.apache.hadoop.mapreduce.server.jobtracker.TaskTracker;
 import org.apache.hadoop.mapreduce.split.JobSplit;
-import org.apache.hadoop.mapreduce.split.SplitMetaInfoReader;
 import org.apache.hadoop.mapreduce.split.JobSplit.TaskSplitMetaInfo;
+import org.apache.hadoop.mapreduce.split.SplitMetaInfoReader;
 import org.apache.hadoop.net.NetUtils;
 import org.apache.hadoop.net.NetworkTopology;
 import org.apache.hadoop.net.Node;
@@ -1796,6 +1795,7 @@ public class JobInProgress {
     //
     // So to simplify, increment the data locality counter whenever there is 
     // data locality.
+    Locality locality = Locality.OFF_SWITCH;
     if (tip.isMapTask() && !tip.isJobSetupTask() && !tip.isJobCleanupTask()) {
       // increment the data locality counter for maps
       Node tracker = jobtracker.getNode(tts.getHost());
@@ -1819,10 +1819,12 @@ public class JobInProgress {
       case 0 :
         LOG.info("Choosing data-local task " + tip.getTIPId());
         jobCounters.incrCounter(Counter.DATA_LOCAL_MAPS, 1);
+        locality = Locality.NODE_LOCAL;
         break;
       case 1:
         LOG.info("Choosing rack-local task " + tip.getTIPId());
         jobCounters.incrCounter(Counter.RACK_LOCAL_MAPS, 1);
+        locality = Locality.RACK_LOCAL;
         break;
       default :
         // check if there is any locality
@@ -1830,9 +1832,19 @@ public class JobInProgress {
           LOG.info("Choosing cached task at level " + level + tip.getTIPId());
           jobCounters.incrCounter(Counter.OTHER_LOCAL_MAPS, 1);
         }
+        locality = Locality.OFF_SWITCH;
         break;
       }
     }
+    
+    // Set locality
+    tip.setTaskAttemptLocality(id, locality);
+    
+    // Set avataar
+    Avataar avataar = 
+        (tip.getActiveTasks().size() > 1) ? 
+            Avataar.SPECULATIVE : Avataar.VIRGIN;
+    tip.setTaskAttemptAvataar(id, avataar);
   }
 
   void setFirstTaskLaunchTime(TaskInProgress tip) {
@@ -2592,20 +2604,29 @@ public class JobInProgress {
       this.jobtracker.getTaskTrackerStatus(status.getTaskTracker());
     String trackerHostname = jobtracker.getNode(ttStatus.getHost()).toString();
     String taskType = getTaskType(tip);
+    TaskAttemptID taskAttemptId = status.getTaskID();
+    Locality locality = tip.getTaskAttemptLocality(taskAttemptId);
+    if (locality == null) {
+      locality = Locality.OFF_SWITCH;
+    }
+    Avataar avataar = tip.getTaskAttemptAvataar(taskAttemptId);
+    if (avataar == null) {
+      avataar = Avataar.VIRGIN;
+    }
     if (status.getIsMap()){
-      JobHistory.MapAttempt.logStarted(status.getTaskID(), status.getStartTime(), 
+      JobHistory.MapAttempt.logStarted(taskAttemptId, status.getStartTime(), 
                                        status.getTaskTracker(), 
                                        ttStatus.getHttpPort(), 
-                                       taskType); 
+                                       taskType,locality, avataar);
       JobHistory.MapAttempt.logFinished(status.getTaskID(), status.getFinishTime(), 
                                         trackerHostname, taskType,
                                         status.getStateString(), 
                                         status.getCounters()); 
     }else{
       JobHistory.ReduceAttempt.logStarted( status.getTaskID(), status.getStartTime(), 
-                                          status.getTaskTracker(),
-                                          ttStatus.getHttpPort(), 
-                                          taskType); 
+                                              status.getTaskTracker(),
+                                              ttStatus.getHttpPort(), 
+                                              taskType, locality, avataar);
       JobHistory.ReduceAttempt.logFinished(status.getTaskID(), status.getShuffleFinishTime(),
                                            status.getSortFinishTime(), status.getFinishTime(), 
                                            trackerHostname, 
