@@ -39,4 +39,6 @@ Bimota-1.1.1 branched from Apache Release Tag: release-1.1.1-rc0
   control. (Liyin Liang via vinodkv)
  
   HDFS-4252. Improve confusing log message that prints exception when editlog
-  read is completed. Contributed by Jing Zhao. 
+  read is completed. Contributed by Jing Zhao.
+ 
+  HADOOP-9115. Deadlock in configuration when writing configuration to hdfs 
