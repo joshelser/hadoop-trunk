@@ -49,4 +49,9 @@ Bimota-1.1.1 branched from Apache Release Tag: release-1.1.1-rc0
     Gong via acmurthy)
 
     HADOOP-7836. HADOOP-7836. TestSaslRPC#testDigestAuthMethodHostBasedToken
-    fails with hostname localhost.localdomain. (daryn via eli) 
+    fails with hostname localhost.localdomain. (daryn via eli)
+
+
+Bianchi (Bimota Patch release)
+   HDFS-3402. Fix hdfs scripts for secure datanodes
+ 
