@@ -1,0 +1,12 @@
+hdp-2-hadoop-2.0.3 branched from Apache @ http://svn.apache.org/viewvc/hadoop/common/tags/release-2.0.3-alpha-rc0/
+
+ INCOMPATIBLE CHANGES
+
+
+ NEW FEATURES
+
+
+ IMPROVEMENTS
+
+
+ BUG FIXES
