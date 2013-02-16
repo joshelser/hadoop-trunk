@@ -53,5 +53,9 @@ Bimota-1.1.1 branched from Apache Release Tag: release-1.1.1-rc0
 
 
 Bianchi (Bimota Patch release)
+
    HDFS-3402. Fix hdfs scripts for secure datanodes
  
+   HADOOP-9296. Allow users from different realm to authenticate without a
+   trust relationship. (Benoy Antony via acmurthy)
+
