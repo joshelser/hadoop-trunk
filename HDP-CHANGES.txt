@@ -59,3 +59,6 @@ Bianchi (Bimota Patch release)
    HADOOP-9296. Allow users from different realm to authenticate without a
    trust relationship. (Benoy Antony via acmurthy)
 
+    MAPREDUCE-4434. Backport MR-2779 (JobSplitWriter.java can't handle large
+    job.split file) to branch-1. (kkambatl via tucu)
+
