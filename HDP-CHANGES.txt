@@ -62,3 +62,8 @@ Bianchi (Bimota Patch release)
     MAPREDUCE-4434. Backport MR-2779 (JobSplitWriter.java can't handle large
     job.split file) to branch-1. (kkambatl via tucu)
 
+  Merged from branch-1 to Bianchi branch
+
+    HDFS-4222. NN is unresponsive and loses heartbeats from DNs when 
+    configured to use LDAP and LDAP has issues. (Xiaobo Peng, suresh)
+
