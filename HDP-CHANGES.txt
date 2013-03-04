@@ -27,6 +27,11 @@ Changes merged from Apache branch-2
     suresh)
 
  BUG FIXES
+
+    HDFS-4541. Set hadoop.log.dir and hadoop.id.str when starting secure
+    datanode to write the logs to right dir by default. (Arpit Gupta via
+    suresh)
   
     HDFS-4540. Namenode http server should use the web authentication 
     keytab for spnego principal. (Arpit Gupta via suresh)
+
