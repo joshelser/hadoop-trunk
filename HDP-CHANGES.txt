@@ -22,6 +22,9 @@ Changes merged from Apache branch-2
 
  IMPROVEMENTS
 
+    HDFS-4541. Set hadoop.log.dir and hadoop.id.str when starting secure
+    datanode to write the logs to right dir by default. (Arpit Gupta via
+    suresh)
 
  BUG FIXES
   
