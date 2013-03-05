@@ -10,3 +10,20 @@ hdp-2-hadoop-2.0.3 branched from Apache @ http://svn.apache.org/viewvc/hadoop/co
 
 
  BUG FIXES
+
+
+Changes merged from Apache branch-2
+
+ INCOMPATIBLE CHANGES
+
+
+ NEW FEATURES
+
+
+ IMPROVEMENTS
+
+
+ BUG FIXES
+  
+    HDFS-4540. Namenode http server should use the web authentication 
+    keytab for spnego principal. (Arpit Gupta via suresh)
