@@ -28,6 +28,9 @@ Changes merged from Apache branch-2
 
  BUG FIXES
 
+    YARN-429. capacity-scheduler config missing from yarn-test artifact.
+    (sseth)
+
     HDFS-4541. Set hadoop.log.dir and hadoop.id.str when starting secure
     datanode to write the logs to right dir by default. (Arpit Gupta via
     suresh)
