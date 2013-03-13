@@ -85,7 +85,6 @@ import org.apache.hadoop.yarn.util.BuilderUtils;
 import org.apache.hadoop.yarn.util.ConverterUtils;
 import org.apache.hadoop.yarn.util.ProtoUtils;
 
-import com.google.common.annotations.VisibleForTesting;
 
 /**
  * This class enables the current JobClient (0.22 hadoop) to run on YARN.
@@ -185,12 +184,12 @@ public class YARNRunner implements ClientProtocol {
     return resMgrDelegate.getClusterMetrics();
   }
 
-  @VisibleForTesting
-  Token<?> getDelegationTokenFromHS(MRClientProtocol hsProxy)
-      throws IOException, InterruptedException {
+  private Token<?> getDelegationTokenFromHS(
+      MRClientProtocol hsProxy, Text renewer) throws IOException,
+      InterruptedException {
     GetDelegationTokenRequest request = recordFactory
       .newRecordInstance(GetDelegationTokenRequest.class);
-    request.setRenewer(Master.getMasterPrincipal(conf));
+    request.setRenewer(renewer.toString());
     DelegationToken mrDelegationToken = hsProxy.getDelegationToken(request)
       .getDelegationToken();
     return ProtoUtils.convertFromProtoFormat(mrDelegationToken,
@@ -270,7 +269,8 @@ public class YARNRunner implements ClientProtocol {
       // the delegation tokens for the HistoryServer also.
       if (conf.getBoolean(JobClient.HS_DELEGATION_TOKEN_REQUIRED, 
           DEFAULT_HS_DELEGATION_TOKEN_REQUIRED)) {
-        Token hsDT = getDelegationTokenFromHS(hsProxy);
+        Token hsDT = getDelegationTokenFromHS(hsProxy, new Text( 
+                conf.get(JobClient.HS_DELEGATION_TOKEN_RENEWER)));
         ts.addToken(hsDT.getService(), hsDT);
       }
     }

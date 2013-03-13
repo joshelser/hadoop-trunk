@@ -608,6 +608,7 @@ Release 0.23.6 - UNRELEASED
     MAPREDUCE-4848. TaskAttemptContext cast error during AM recovery (Jerry
     Chen via jlowe)
 
+<<<<<<< HEAD
     MAPREDUCE-4921. JobClient should acquire HS token with RM principal 
     (daryn via bobby)
 
@@ -620,6 +621,9 @@ Release 0.23.6 - UNRELEASED
     (Karthik Kambatla via harsh)
 
 Release 0.23.5 - 2012-11-28
+=======
+Release 0.23.5 - UNRELEASED
+>>>>>>> parent of 71edb89... svn merge -c 1432230 FIXES: MAPREDUCE-4921. JobClient should acquire HS token with RM principal (daryn via bobby)
 
   INCOMPATIBLE CHANGES
 
