@@ -57,12 +57,6 @@ Release 1.1.2 - 2012.12.05
     MAPREDUCE-4888. Fixed NLineInputFormat one-off error which dropped data.
     (vinodkv via acmurthy)
 
-    MAPREDUCE-4843. When using DefaultTaskController, JobLocalizer not thread 
-    safe. (kkambatl via tucu)
-
-    MAPREDUCE-2217. The expire launching task should cover the UNASSIGNED task. 
-    (schen and kkambatl via tucu)
-
 Release 1.1.1 - 2012.11.18
 
   INCOMPATIBLE CHANGES

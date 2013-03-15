@@ -68,3 +68,10 @@ Bianchi (Bimota Patch release)
     configured to use LDAP and LDAP has issues. (Xiaobo Peng, suresh)
 
     HDFS-3515. Port HDFS-1457 to branch-1. (eli)
+
+    MAPREDUCE-4843. When using DefaultTaskController, JobLocalizer not thread 
+    safe. (kkambatl via tucu)
+
+    MAPREDUCE-2217. The expire launching task should cover the UNASSIGNED task. 
+    (schen and kkambatl via tucu)
+
