@@ -218,7 +218,7 @@ public class MRAppMaster extends CompositeService {
   }
 
   @Override
-  public void init(final Configuration conf) {
+  protected void innerInit(final Configuration conf) {
     conf.setBoolean(Dispatcher.DISPATCHER_EXIT_ON_ERROR_KEY, true);
 
     downloadTokensAndSetupUGI(conf);
@@ -432,7 +432,7 @@ public class MRAppMaster extends CompositeService {
       addIfService(historyService);
     }
     
-    super.init(conf);
+    super.innerInit(conf);
   } // end of init()
   
   protected Dispatcher createDispatcher() {
@@ -802,7 +802,7 @@ public class MRAppMaster extends CompositeService {
     }
 
     @Override
-    public synchronized void start() {
+    protected void innerStart() {
       if (job.isUber()) {
         this.containerAllocator = new LocalContainerAllocator(
             this.clientService, this.context, nmHost, nmPort, nmHttpPort
@@ -813,13 +813,11 @@ public class MRAppMaster extends CompositeService {
       }
       ((Service)this.containerAllocator).init(getConfig());
       ((Service)this.containerAllocator).start();
-      super.start();
     }
 
     @Override
-    public synchronized void stop() {
-      ((Service)this.containerAllocator).stop();
-      super.stop();
+    protected void innerStop() {
+      stopService((Service)this.containerAllocator);
     }
 
     @Override
@@ -861,7 +859,7 @@ public class MRAppMaster extends CompositeService {
     }
 
     @Override
-    public synchronized void start() {
+    protected void innerStart() {
       if (job.isUber()) {
         this.containerLauncher = new LocalContainerLauncher(context,
             (TaskUmbilicalProtocol) taskAttemptListener);
@@ -870,7 +868,6 @@ public class MRAppMaster extends CompositeService {
       }
       ((Service)this.containerLauncher).init(getConfig());
       ((Service)this.containerLauncher).start();
-      super.start();
     }
 
     @Override
@@ -879,9 +876,8 @@ public class MRAppMaster extends CompositeService {
     }
 
     @Override
-    public synchronized void stop() {
-      ((Service)this.containerLauncher).stop();
-      super.stop();
+    protected void innerStop() {
+      stopService((Service) this.containerLauncher);
     }
   }
 
@@ -891,7 +887,7 @@ public class MRAppMaster extends CompositeService {
     }
 
     @Override
-    public synchronized void stop() {
+    protected void innerStop() {
       try {
         if(isLastAMRetry) {
           cleanupStagingDir();
@@ -902,7 +898,6 @@ public class MRAppMaster extends CompositeService {
       } catch (IOException io) {
         LOG.error("Failed to cleanup staging dir: ", io);
       }
-      super.stop();
     }
   }
 
@@ -969,7 +964,7 @@ public class MRAppMaster extends CompositeService {
 
   @SuppressWarnings("unchecked")
   @Override
-  public void start() {
+  protected void innerStart() {
 
     amInfos = new LinkedList<AMInfo>();
 
@@ -1039,7 +1034,7 @@ public class MRAppMaster extends CompositeService {
     }
 
     //start all the components
-    super.start();
+    super.innerStart();
 
     // All components have started, start the job.
     startJobs();

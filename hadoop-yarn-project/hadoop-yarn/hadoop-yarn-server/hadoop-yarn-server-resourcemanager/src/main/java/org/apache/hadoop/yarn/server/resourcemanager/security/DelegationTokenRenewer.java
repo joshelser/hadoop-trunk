@@ -86,8 +86,7 @@ public class DelegationTokenRenewer extends AbstractService {
   }
 
   @Override
-  public synchronized void init(Configuration conf) {
-    super.init(conf);
+  protected synchronized void innerInit(Configuration conf) {
     this.tokenKeepAliveEnabled =
         conf.getBoolean(YarnConfiguration.LOG_AGGREGATION_ENABLED,
             YarnConfiguration.DEFAULT_LOG_AGGREGATION_ENABLED);
@@ -97,8 +96,7 @@ public class DelegationTokenRenewer extends AbstractService {
   }
 
   @Override
-  public synchronized void start() {
-    super.start();
+  protected void innerStart() {
     
     dtCancelThread.start();
     renewalTimer = new Timer(true);
@@ -111,7 +109,7 @@ public class DelegationTokenRenewer extends AbstractService {
   }
 
   @Override
-  public synchronized void stop() {
+  protected void innerStop() {
     if (renewalTimer != null) {
       renewalTimer.cancel();
     }
@@ -131,8 +129,6 @@ public class DelegationTokenRenewer extends AbstractService {
         LOG.info("Interrupted while joining on delayed removal thread.", e);
       }
     }
-    
-    super.stop();
   }
 
   /**
