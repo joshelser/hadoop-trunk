@@ -65,7 +65,7 @@ and SHALL -and MUST NOT be treated as normative.
 The term "iff" is shorthand for "if and only if".
 
 
-## Core Assumptions and Requirements
+## Assumptions contained in the FileSystem uses
 
 The original `FileSystem` class and its usages are based on a set of
 assumptions "so obvious that nobody wrote them down" -primarily that HDFS is
@@ -87,12 +87,7 @@ Posix filesystem
 
 * You can store many GB of data in a single file.
 
-* The names of paths are at least upper and lower case ASCII, excluding `/` and
-  possibly the space character ' '. (Windows doesn't allow a colon, as shown by
-  HDFS-4470 (Azure blob store recommends not using a trailing "." as the .NET
-  URI class strips that)
-
-* The root directory, "/", always exists, and cannot be renamed. It is always a
+* The root directory, `"/"`, always exists, and cannot be renamed. It is always a
   directory, and cannot be overwritten by a file write operation. An attempt to
   recursively delete the root directory will delete it's contents (assuming
   permissions allow this), but will retain the root path itself.
@@ -104,6 +99,22 @@ Posix filesystem
 
 * Security: If you don't have the permissions for an operation, it will fail
   with some kind of error.
+
+### Path Names
+
+  * A path is comprised of path components separated by '/'.
+  
+  * Paths are compared based on unicode code-points. 
+  
+  * Case-insensitive and locale-specific comparisons MUST NOT not be used.
+  
+  * A path component is unicode string of 1 or more characters.
+  
+  * Path components must not include characters `":"` or `"/"`.
+  
+  * Path components must not be `"."`  or `".."` 
+  
+  * Azure blob store says that paths SHOULD NOT use a trailing "." as the .NET URI class strips that.
 
 ### Security Assumptions
 
@@ -136,27 +147,31 @@ to an undefined availability problem"*
   reference to http://wiki.apache.org/hadoop/ConnectionRefused when a TCP
   connection request is refused.
 
-## Atomicity
+## Core Requirements of a FileSystem
+  
+
+  
+### Atomicity
 
 * Rename of a file MUST be atomic.
 
 * Rename of a directory SHOULD be atomic. Blobstore filesystems MAY offer
 non-atomic directory renaming.
 
-* Delete of a file MUST be atomic
+* Delete of a file MUST be atomic.
 
-* Delete of an empty directory MUST be atomic
+* Delete of an empty directory MUST be atomic.
 
-* Recursive directory deletion SHOULD be atomic. Blobstore filesystems and
-  filesystems that span clusters MAY offer non-atomic recursive directory
-  deletion.
+* Recursive directory deletion MAY be atomic. Although HDFS offers atomic
+recursive directory deletion, none of the other FileSystems that Hadoop supports
+offers such a guarantee -including the local filesystems.
 
-* `mkdir()` SHOULD be atomic
+* `mkdir()` SHOULD be atomic.
 
 * `mkdirs()` MAY be atomic. [It is *currently* atomic on HDFS, but this is not the case for most other filesystems -and cannot be guaranteed for future
 versions of HDFS]
 
-* If `append()` is implemented, each `append()` operation is atomic.
+* If `append()` is implemented, each individual `append()` operation SHOULD be atomic.
 
 * Only one writer can write to a file (ISSUE: does anything in MR/HBase use this for locks?)
 
@@ -165,10 +180,7 @@ versions of HDFS]
   assume that the listed directories do not get deleted between listing their
   status and recursive actions on the listed entries.
 
-* A `FileSystem` instance MAY be cached and MAY be passed to other threads in the same process.
-
-
-## Consistency
+### Consistency
 
 The consistency model of a Hadoop filesystem is *one-copy-update-semantics*;
 that generally that of a traditional Posix filesystem. 
@@ -195,7 +207,7 @@ All clients  calling `read()` on  a closed file MUST  see the same  metadata and
 data  until  it  is  changed  from  a  `create()`,  `append()`,  `rename()`  and
 `append()` operation.
 
-## Concurrency
+### Concurrency
 
 * The data added to a file during a write or append MAY be visible while the
   write operation is in progress.
@@ -219,7 +231,7 @@ data  until  it  is  changed  from  a  `create()`,  `append()`,  `rename()`  and
 * Undefined: action of `delete()` while a write or append operation is in
   progress
 
-## Undefined limits
+### Undefined limits
 
 Here are some limits to filesystem capacity that have never been explicitly
 defined.
@@ -348,7 +360,10 @@ irrespective of the value of the recursive flag.
 in the filesystem, excluding the `/` entry itself. That is, `exists("/")`
 must still be true
 
-* Deleting the root path, `/`, MUST return false if `recursive==false`.
+* If the filesystem is empty, deleting the root path, `/`, MUST succeed and
+  MUST have no effect.
+ 
+* Deleting a non-empty root directory, `/`, MUST return false if `recursive==false`.
 
 * Deleting a file is an atomic action.
 
