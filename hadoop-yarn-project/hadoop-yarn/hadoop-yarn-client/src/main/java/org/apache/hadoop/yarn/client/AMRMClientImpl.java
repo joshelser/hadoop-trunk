@@ -91,12 +91,12 @@ public class AMRMClientImpl extends AbstractService implements AMRMClient {
   }
 
   @Override
-  public synchronized void init(Configuration conf) {
-    super.init(conf);
+  protected void innerInit(Configuration conf) throws Exception {
+    super.innerInit(conf);
   }
 
   @Override
-  public synchronized void start() {
+  protected void innerStart() throws Exception {
     final YarnConfiguration conf = new YarnConfiguration(getConfig());
     final YarnRPC rpc = YarnRPC.create(conf);
     final InetSocketAddress rmAddress = conf.getSocketAddr(
@@ -120,15 +120,15 @@ public class AMRMClientImpl extends AbstractService implements AMRMClient {
       }
     });
     LOG.debug("Connecting to ResourceManager at " + rmAddress);
-    super.start();
+    super.innerStart();
   }
 
   @Override
-  public synchronized void stop() {
+  protected void innerStop() throws Exception {
     if (this.rmClient != null) {
       RPC.stopProxy(this.rmClient);
     }
-    super.stop();
+    super.innerStop();
   }
   
   @Override
