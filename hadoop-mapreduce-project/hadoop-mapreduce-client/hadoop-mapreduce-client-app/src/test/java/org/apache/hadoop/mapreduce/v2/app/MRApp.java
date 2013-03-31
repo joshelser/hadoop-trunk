@@ -212,7 +212,7 @@ public class MRApp extends MRAppMaster {
   }
 
   @Override
-  public void init(Configuration conf) {
+  protected void innerInit(Configuration conf) throws Exception {
     try {
       //Create the staging directory if it does not exist
       String user = UserGroupInformation.getCurrentUser().getShortUserName();
@@ -223,7 +223,7 @@ public class MRApp extends MRAppMaster {
       throw new YarnException("Error creating staging dir", e);
     }
     
-    super.init(conf);
+    super.innerInit(conf);
     if (this.clusterInfo != null) {
       getContext().getClusterInfo().setMinContainerCapability(
           this.clusterInfo.getMinContainerCapability());

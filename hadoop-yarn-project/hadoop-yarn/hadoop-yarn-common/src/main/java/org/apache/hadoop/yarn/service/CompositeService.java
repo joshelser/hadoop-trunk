@@ -53,13 +53,13 @@ public class CompositeService extends AbstractService {
     return serviceList.remove(service);
   }
 
-  protected void innerInit(Configuration conf) {
+  protected void innerInit(Configuration conf) throws Exception {
     for (Service service : serviceList) {
       service.init(conf);
     }
   }
 
-  protected void innerStart() {
+  protected void innerStart() throws Exception {
     for (Service service : serviceList) {
       // start the service. If this fails that service
       // will be stopped and an exception raised
@@ -69,7 +69,7 @@ public class CompositeService extends AbstractService {
     }
   }
 
-  protected void innerStop() {
+  protected void innerStop() throws Exception{
     //stop all started services
     stop(serviceStartedCount);
   }

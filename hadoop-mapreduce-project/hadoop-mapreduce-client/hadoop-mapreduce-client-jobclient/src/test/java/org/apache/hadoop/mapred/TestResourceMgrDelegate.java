@@ -61,7 +61,7 @@ public class TestResourceMgrDelegate {
     ResourceMgrDelegate delegate = new ResourceMgrDelegate(
       new YarnConfiguration()) {
       @Override
-      public synchronized void start() {
+      protected void innerStart() {
         this.rmClient = applicationsManager;
       }
     };
@@ -100,7 +100,7 @@ public class TestResourceMgrDelegate {
     ResourceMgrDelegate resourceMgrDelegate = new ResourceMgrDelegate(
       new YarnConfiguration()) {
       @Override
-      public synchronized void start() {
+      protected void innerStart() {
         this.rmClient = applicationsManager;
       }
     };

@@ -253,9 +253,9 @@ import org.junit.Test;
       }
 
       @Override
-      public synchronized void stop() {
+      protected void innerStop() throws Exception {
         stoppedContainerAllocator = true;
-        super.stop();
+        super.innerStop();
       }
     }
 

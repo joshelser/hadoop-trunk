@@ -130,8 +130,8 @@ public class RecoveryService extends CompositeService implements Recovery {
   }
 
   @Override
-  public void init(Configuration conf) {
-    super.init(conf);
+  protected void innerInit(Configuration conf) throws Exception {
+    super.innerInit(conf);
     // parse the history file
     try {
       parse();

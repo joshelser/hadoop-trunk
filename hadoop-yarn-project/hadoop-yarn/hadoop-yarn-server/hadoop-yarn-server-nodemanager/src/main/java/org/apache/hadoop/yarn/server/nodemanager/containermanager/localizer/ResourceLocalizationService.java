@@ -223,7 +223,7 @@ public class ResourceLocalizationService extends CompositeService
   }
 
   @Override
-  public void innerStart() {
+  public void innerStart() throws Exception {
     cacheCleanup.scheduleWithFixedDelay(new CacheCleanup(dispatcher),
         cacheCleanupPeriod, cacheCleanupPeriod, TimeUnit.MILLISECONDS);
     server = createServer();
@@ -232,7 +232,7 @@ public class ResourceLocalizationService extends CompositeService
         getConfig().updateConnectAddr(YarnConfiguration.NM_LOCALIZER_ADDRESS,
                                       server.getListenerAddress());
     LOG.info("Localizer started on port " + server.getPort());
-    super.start();
+    super.innerStart();
   }
 
   LocalizerTracker createLocalizerTracker(Configuration conf) {

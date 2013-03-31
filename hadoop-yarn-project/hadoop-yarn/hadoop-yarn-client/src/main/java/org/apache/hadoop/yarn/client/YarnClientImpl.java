@@ -86,15 +86,15 @@ public class YarnClientImpl extends AbstractService implements YarnClient {
   }
 
   @Override
-  public synchronized void init(Configuration conf) {
+  protected void innerInit(Configuration conf) throws Exception {
     if (this.rmAddress == null) {
       this.rmAddress = getRmAddress(conf);
     }
-    super.init(conf);
+    super.innerInit(conf);
   }
 
   @Override
-  public synchronized void start() {
+  protected void innerStart() throws Exception {
     YarnRPC rpc = YarnRPC.create(getConfig());
 
     this.rmClient = (ClientRMProtocol) rpc.getProxy(
@@ -102,15 +102,15 @@ public class YarnClientImpl extends AbstractService implements YarnClient {
     if (LOG.isDebugEnabled()) {
       LOG.debug("Connecting to ResourceManager at " + rmAddress);
     }
-    super.start();
+    super.innerStart();
   }
 
   @Override
-  public synchronized void stop() {
+  protected void innerStop() throws Exception {
     if (this.rmClient != null) {
       RPC.stopProxy(this.rmClient);
     }
-    super.stop();
+    super.innerStop();
   }
 
   @Override

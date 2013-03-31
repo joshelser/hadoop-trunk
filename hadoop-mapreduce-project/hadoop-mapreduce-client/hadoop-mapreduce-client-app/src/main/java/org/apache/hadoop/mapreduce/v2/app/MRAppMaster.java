@@ -218,7 +218,7 @@ public class MRAppMaster extends CompositeService {
   }
 
   @Override
-  protected void innerInit(final Configuration conf) {
+  protected void innerInit(final Configuration conf) throws Exception {
     conf.setBoolean(Dispatcher.DISPATCHER_EXIT_ON_ERROR_KEY, true);
 
     downloadTokensAndSetupUGI(conf);
@@ -964,7 +964,7 @@ public class MRAppMaster extends CompositeService {
 
   @SuppressWarnings("unchecked")
   @Override
-  protected void innerStart() {
+  protected void innerStart() throws Exception {
 
     amInfos = new LinkedList<AMInfo>();
 
