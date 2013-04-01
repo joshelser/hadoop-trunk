@@ -584,8 +584,8 @@ public class TestNodeStatusUpdater {
         return nodeStatusUpdater;
       }
     };
-    verifyNodeStartFailure("org.apache.hadoop.yarn.YarnException: "
-        + "Recieved SHUTDOWN signal from Resourcemanager ,Registration of NodeManager failed");
+    verifyNodeStartFailure(
+        "Recieved SHUTDOWN signal from Resourcemanager ,Registration of NodeManager failed");
   }
 
   @Test (timeout = 15000)
@@ -732,13 +732,13 @@ public class TestNodeStatusUpdater {
       nm.start();
       Assert.fail("NM should have failed to start. Didn't get exception!!");
     } catch (Exception e) {
-      Assert.assertEquals(errMessage, e.getCause()
-          .getMessage());
+      Assert.assertTrue(
+        "Did not find " + errMessage + " in " + e.getMessage(),
+        e.getMessage().contains(errMessage));
     }
     
-    // the state change to stopped occurs only if the startup is success, else
-    // state change doesn't occur
-    Assert.assertEquals("NM state is wrong!", Service.STATE.INITED, nm
+    // the service should be stopped
+    Assert.assertEquals("NM state is wrong!", STATE.STOPPED, nm
         .getServiceState());
 
     Assert.assertEquals("Number of registered nodes is wrong!", 0,
