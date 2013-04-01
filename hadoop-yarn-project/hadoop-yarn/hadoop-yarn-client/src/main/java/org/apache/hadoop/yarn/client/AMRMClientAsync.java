@@ -133,16 +133,16 @@ public class AMRMClientAsync extends AbstractService {
   }
   
   @Override
-  public void init(Configuration conf) {
-    super.init(conf);
+  protected void innerInit(Configuration conf) throws Exception {
+    super.innerInit(conf);
     client.init(conf);
   }
   
   @Override
-  public void start() {
+  protected void innerStart() throws Exception {
     handlerThread.start();
     client.start();
-    super.start();
+    super.innerStart();
   }
   
   /**
@@ -151,7 +151,7 @@ public class AMRMClientAsync extends AbstractService {
    * deadlock, and thus should be avoided.
    */
   @Override
-  public void stop() {
+  protected void innerStop() throws Exception {
     if (Thread.currentThread() == handlerThread) {
       throw new YarnException("Cannot call stop from callback handler thread!");
     }
@@ -168,7 +168,7 @@ public class AMRMClientAsync extends AbstractService {
     } catch (InterruptedException ex) {
       LOG.error("Error joining with hander thread", ex);
     }
-    super.stop();
+    super.innerStop();
   }
   
   /**
