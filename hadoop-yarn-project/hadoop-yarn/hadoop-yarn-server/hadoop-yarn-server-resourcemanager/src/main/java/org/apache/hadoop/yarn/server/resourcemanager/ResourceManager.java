@@ -598,10 +598,16 @@ public class ResourceManager extends CompositeService implements Recoverable {
     if (webApp != null) {
       webApp.stop();
     }
-    rmDTSecretManager.stopThreads();
+    if (rmDTSecretManager != null) {
+      rmDTSecretManager.stopThreads();
+    }
 
-    this.appTokenSecretManager.stop();
-    this.containerTokenSecretManager.stop();
+    if (appTokenSecretManager != null) {
+      this.appTokenSecretManager.stop();
+    }
+    if (containerTokenSecretManager != null) {
+      this.containerTokenSecretManager.stop();
+    }
 
     /*synchronized(shutdown) {
       shutdown.set(true);
@@ -610,13 +616,15 @@ public class ResourceManager extends CompositeService implements Recoverable {
 
     DefaultMetricsSystem.shutdown();
 
-    RMStateStore store = rmContext.getStateStore();
-    try {
-      store.close();
-    } catch (Exception e) {
-      LOG.error("Error closing store.", e);
+    if (rmContext != null) {
+      RMStateStore store = rmContext.getStateStore();
+      try {
+        store.close();
+      } catch (Exception e) {
+        LOG.error("Error closing store.", e);
+      }
     }
-      
+
     super.innerStop();
   }
   
