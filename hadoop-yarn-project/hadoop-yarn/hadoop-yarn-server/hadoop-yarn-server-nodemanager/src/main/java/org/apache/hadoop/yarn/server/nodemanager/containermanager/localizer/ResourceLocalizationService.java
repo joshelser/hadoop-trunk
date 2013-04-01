@@ -174,7 +174,7 @@ public class ResourceLocalizationService extends CompositeService
   }
 
   @Override
-  public void innerInit(Configuration conf) {
+  public void innerInit(Configuration conf) throws Exception {
     this.recordFactory = RecordFactoryProvider.getRecordFactory(conf);
 
     try {
@@ -215,6 +215,7 @@ public class ResourceLocalizationService extends CompositeService
     localizerTracker = createLocalizerTracker(conf);
     addService(localizerTracker);
     dispatcher.register(LocalizerEventType.class, localizerTracker);
+    super.innerInit(conf);
   }
 
   @Override
@@ -263,11 +264,12 @@ public class ResourceLocalizationService extends CompositeService
   }
 
   @Override
-  public void innerStop() {
+  public void innerStop() throws Exception {
     if (server != null) {
       server.stop();
     }
     cacheCleanup.shutdown();
+    super.innerStop();
   }
 
   @Override
@@ -473,8 +475,9 @@ public class ResourceLocalizationService extends CompositeService
     }
     
     @Override
-    public synchronized void innerStart() {
+    public synchronized void innerStart() throws Exception {
       publicLocalizer.start();
+      super.innerStart();
     }
 
     public LocalizerHeartbeatResponse processHeartbeat(LocalizerStatus status) {
@@ -495,11 +498,12 @@ public class ResourceLocalizationService extends CompositeService
     }
     
     @Override
-    public void innerStop() {
+    public void innerStop() throws Exception {
       for (LocalizerRunner localizer : privLocalizers.values()) {
         localizer.interrupt();
       }
       publicLocalizer.interrupt();
+      super.innerStop();
     }
 
     @Override
