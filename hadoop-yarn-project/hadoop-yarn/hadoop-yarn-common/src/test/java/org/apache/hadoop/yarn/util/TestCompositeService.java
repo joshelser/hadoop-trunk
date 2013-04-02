@@ -25,7 +25,6 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.yarn.YarnException;
-import org.apache.hadoop.yarn.service.BreakableService;
 import org.apache.hadoop.yarn.service.CompositeService;
 import org.apache.hadoop.yarn.service.Service;
 import org.apache.hadoop.yarn.service.Service.STATE;
@@ -177,7 +176,7 @@ public class TestCompositeService {
     try {
       serviceManager.stop();
     } catch (YarnException e) {
-      
+
     }
     assertInState(services, STATE.STOPPED);
   }
@@ -198,7 +197,7 @@ public class TestCompositeService {
   }
 
   /**
-   * Shut down from not-inited, assert that none were 
+   * Shut down from not-inited, assert that none were
    */
   @Test
   public void testServiceStopFromNotInited() {
@@ -260,7 +259,7 @@ public class TestCompositeService {
       //expected
     }
   }
-  
+
   /**
    * Shut down from not-inited, assert that none were 
    */
@@ -336,6 +335,11 @@ public class TestCompositeService {
 
     public void setThrowExceptionOnStop(boolean throwExceptionOnStop) {
       this.throwExceptionOnStop = throwExceptionOnStop;
+    }
+
+    @Override
+    public String toString() {
+      return "Service " + getName();
     }
 
   }
