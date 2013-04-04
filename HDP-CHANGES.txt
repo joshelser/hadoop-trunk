@@ -1,4 +1,4 @@
-Bimota-1.1.1 branched from Apache Release Tag: release-1.1.1-rc0
+Bimota-1.1.1 branched from Apache Release Tag: release-1.1.2-rc0
 
   INCOMPATIBLE CHANGES
 
