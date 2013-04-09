@@ -131,6 +131,7 @@ public class ClientRMService extends AbstractService implements
   @Override
   protected void innerInit(Configuration conf) throws Exception {
     clientBindAddress = getBindAddress(conf);
+    super.innerInit(conf);
   }
 
   @Override
@@ -157,6 +158,7 @@ public class ClientRMService extends AbstractService implements
     // enable RM to short-circuit token operations directly to itself
     RMDelegationTokenIdentifier.Renewer.setSecretManager(
         rmDTSecretManager, clientBindAddress);
+    super.innerStart();
   }
 
   @Override
@@ -164,6 +166,7 @@ public class ClientRMService extends AbstractService implements
     if (this.server != null) {
         this.server.stop();
     }
+    super.innerStop();
   }
 
   InetSocketAddress getBindAddress(Configuration conf) {

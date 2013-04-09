@@ -53,7 +53,7 @@ public class WebServer extends AbstractService {
   }
 
   @Override
-  protected void innerStart() {
+  protected void innerStart() throws Exception {
     String bindAddress = getConfig().get(YarnConfiguration.NM_WEBAPP_ADDRESS,
         YarnConfiguration.DEFAULT_NM_WEBAPP_ADDRESS);
     LOG.info("Instantiating NMWebApp at " + bindAddress);
@@ -69,13 +69,15 @@ public class WebServer extends AbstractService {
       LOG.error(msg, e);
       throw new YarnException(msg, e);
     }
+    super.innerStart();
   }
 
   @Override
-  protected void innerStop() {
+  protected void innerStop() throws Exception {
     if (this.webApp != null) {
       this.webApp.stop();
     }
+    super.innerStop();
   }
 
   public static class NMWebApp extends WebApp implements YarnWebParams {
