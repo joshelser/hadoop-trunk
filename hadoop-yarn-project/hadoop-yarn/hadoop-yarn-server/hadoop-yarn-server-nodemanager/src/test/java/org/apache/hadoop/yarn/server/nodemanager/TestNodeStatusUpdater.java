@@ -76,6 +76,7 @@ import org.apache.hadoop.yarn.server.security.ApplicationACLsManager;
 import org.apache.hadoop.yarn.server.utils.YarnServerBuilderUtils;
 import org.apache.hadoop.yarn.service.Service;
 import org.apache.hadoop.yarn.service.Service.STATE;
+import org.apache.hadoop.yarn.service.ServiceOperations;
 import org.apache.hadoop.yarn.util.BuilderUtils;
 import org.junit.After;
 import org.junit.Assert;
@@ -107,9 +108,8 @@ public class TestNodeStatusUpdater {
   public void tearDown() {
     this.registeredNodes.clear();
     heartBeatID = 0;
-    if (nm != null && nm.getServiceState() == STATE.STARTED) {
-      nm.stop();
-    }
+    ServiceOperations.stop(nm);
+    ServiceOperations.stop(rebootedNodeManager);
     DefaultMetricsSystem.shutdown();
   }
 
@@ -375,13 +375,10 @@ public class TestNodeStatusUpdater {
     }
 
     @Override
-    public void stop() {
-      super.stop();
+    protected void innerStop() throws Exception {
+      super.innerStop();
       isStopped = true;
-      try {
         syncBarrier.await();
-      } catch (Exception e) {
-      }
     }
   }
   // 
