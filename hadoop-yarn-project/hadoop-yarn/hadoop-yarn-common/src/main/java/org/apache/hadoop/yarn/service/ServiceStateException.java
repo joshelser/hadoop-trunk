@@ -42,7 +42,7 @@ public class ServiceStateException extends YarnException {
    * If the caught exception already is of that type -including
    * a {@link YarnException} it is typecast to a {@link RuntimeException}
    * and returned.
-   * 
+   *
    * All other exception types are wrapped in a new instance of
    * ServiceStateException
    * @param fault exception or throwable
@@ -61,7 +61,7 @@ public class ServiceStateException extends YarnException {
    * If the caught exception already is of that type -including
    * a {@link YarnException} it is typecast to a {@link RuntimeException}
    * and returned.
-   * 
+   *
    * All other exception types are wrapped in a new instance of
    * ServiceStateException
    * @param text text to use if a new exception is created
