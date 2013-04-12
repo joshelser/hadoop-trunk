@@ -821,7 +821,9 @@ public class TestNodeStatusUpdater {
         connectionRetryIntervalSecs);
 
     //Test NM try to connect to RM Several times, but finally fail
-    nm = new NodeManagerWithCustomNodeStatusUpdater() {
+    NodeManagerWithCustomNodeStatusUpdater nmWithUpdater;
+    
+    nm = nmWithUpdater = new NodeManagerWithCustomNodeStatusUpdater() {
       @Override
       protected NodeStatusUpdater createUpdater(Context context,
           Dispatcher dispatcher, NodeHealthCheckerService healthChecker) {
@@ -853,7 +855,7 @@ public class TestNodeStatusUpdater {
 
     //Test NM connect to RM, fail at first several attempts,
     //but finally success.
-    nm = new NodeManagerWithCustomNodeStatusUpdater() {
+    nm = nmWithUpdater = new NodeManagerWithCustomNodeStatusUpdater() {
       @Override
       protected NodeStatusUpdater createUpdater(Context context,
           Dispatcher dispatcher, NodeHealthCheckerService healthChecker) {
@@ -864,6 +866,8 @@ public class TestNodeStatusUpdater {
       }
     };
     nm.init(conf);
+    NodeStatusUpdater updater = nmWithUpdater.getUpdater();
+    Assert.assertNotNull("Updater not yet created ", updater);
     waitStartTime = System.currentTimeMillis();
     try {
       nm.start();
@@ -872,10 +876,8 @@ public class TestNodeStatusUpdater {
                 "after connecting to RM.", ex);
       throw ex;
     }
-    NodeStatusUpdater updater =
-      ((NodeManagerWithCustomNodeStatusUpdater) nm).getUpdater();
-    MyNodeStatusUpdater4 myUpdater = (MyNodeStatusUpdater4) updater;
     long duration = System.currentTimeMillis() - waitStartTime;
+    MyNodeStatusUpdater4 myUpdater = (MyNodeStatusUpdater4) updater;
     Assert.assertTrue("NM started before updater triggered",
                       myUpdater.isTriggered());
     Assert.assertTrue("NM should have connected to RM after "
