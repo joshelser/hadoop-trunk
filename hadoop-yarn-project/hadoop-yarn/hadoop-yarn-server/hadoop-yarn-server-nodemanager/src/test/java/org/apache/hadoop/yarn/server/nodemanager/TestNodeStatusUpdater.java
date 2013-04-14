@@ -301,10 +301,10 @@ public class TestNodeStatusUpdater {
     public ResourceTracker resourceTracker =
         new MyResourceTracker(this.context);
     private Context context;
-    private final long waitStartTime;
+    private long waitStartTime;
     private final long rmStartIntervalMS;
     private final boolean rmNeverStart;
-    private boolean triggered = false;
+    private volatile boolean triggered = false;
     private long durationWhenTriggered = -1;
 
     public MyNodeStatusUpdater4(Context context, Dispatcher dispatcher,
@@ -318,22 +318,28 @@ public class TestNodeStatusUpdater {
     }
 
     @Override
+    protected void innerStart() throws Exception {
+      //record the startup time
+      this.waitStartTime = System.currentTimeMillis();
+      super.innerStart();
+    }
+
+    @Override
     protected ResourceTracker getRMClient() {
-      if(triggered) {
-        return resourceTracker;
+      if (!triggered) {
+        long t = System.currentTimeMillis();
+        long duration = t - waitStartTime;
+        if (duration <= rmStartIntervalMS
+            || rmNeverStart) {
+          throw new YarnException("Faking RM start failure as start " +
+                                  "delay timer has not expired.");
+        } else {
+          //triggering
+          triggered = true;
+          durationWhenTriggered = duration;
+        }
       }
-      long t = System.currentTimeMillis();
-      long duration = t - waitStartTime;
-      if(duration <= rmStartIntervalMS
-          || rmNeverStart) {
-        throw new YarnException("Faking RM start failure as start " +
-            "delay timer has not expired.");
-      } else {
-        //triggering
-        triggered = true;
-        durationWhenTriggered = duration;
-        return resourceTracker;
-      }
+      return resourceTracker;
     }
 
     private boolean isTriggered() {
@@ -876,6 +882,8 @@ public class TestNodeStatusUpdater {
     }
     long duration = System.currentTimeMillis() - waitStartTime;
     MyNodeStatusUpdater4 myUpdater = (MyNodeStatusUpdater4) updater;
+    Assert.assertTrue("Updater was never started",
+                      myUpdater.getWaitStartTime()>0);
     Assert.assertTrue("NM started before updater triggered",
                       myUpdater.isTriggered());
     Assert.assertTrue("NM should have connected to RM after "
