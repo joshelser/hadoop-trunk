@@ -64,7 +64,7 @@ Hadoop FileSystem Specification
 
     * Operations SHOULD report failures by way of raised exceptions, rather
     than specific return codes of an operation.
-    
+
     * In the text, when an exception class is named, such as <<<IOException>>>,
     the raised exception MAY be an instance of or subclass of the named exception.
     It MUST NOT be a superclass
