@@ -43,7 +43,7 @@ Hadoop FileSystem Specification
   <exists(F)> and F represents a symbolic link.
 
   <pos(S: Stream): int> is a function which returns the position of an
-  input stream reading a file. 
+  input stream reading a file.
 
   <min(X: T, Y:T)>: T is a function which returns the smallest of <(X,Y)>.
 
@@ -57,7 +57,7 @@ Hadoop FileSystem Specification
     the implementation and on the state of the system.
 
     * Operations MAY throw a <<<RuntimeException>>> or subclass thereof.
-    
+
     * Operations SHOULD raise all network, remote and high-level problems as
     an <<<IOException>>> or subclass thereof, and SHOULD NOT raise a
     <<<RuntimeException>>> for such problems.
@@ -83,11 +83,11 @@ Hadoop FileSystem Specification
 * Concurrency
 
   [[1]] All operations on an InputStream S are assumed to be thread-unsafe.
-  
+
   [[1]] If the file which is being accessed is changed during a series
   of operations, the outcome is not defined.
 
-* InputStream Prequisites 
+* InputStream Prequisites
 
   Implementations of <<<InputStream>>> MUST follow the specification of
   <<<InputStream>>>. For an <<<InputStream>>> <S> created from
@@ -96,19 +96,19 @@ Hadoop FileSystem Specification
   [[1]] After <<<S.close())>>> all <<<read>>> operations are SHOULD fail with
   an exception. It MAY NOT, in which case the outcome of all futher operations
   are undefined.
-  
+
   [[1]]<<<S.read()>>> where less than <length(F)> bytes have been served.
   MUST return the next byte of data
-  
+
   [[1]] <<<S.read()>>> where more than <length(F)> bytes have been served.
   MUST return -1.
 
   [[1]] <<<S.read(Buffer, Offset, Len)>>>
-   where <Offset < 0 ||  Offset> > <Buffer.length ||
-   (Len > > <(Buffer.length - Offset)) || Len <0 >
-   MUST throw
-   <<<InvalidArgumentException>>> or another <<RuntimeException>>
-   including -but not limited to- <<<ArrayIndexOutOfBoundsException>>>
+  where <Offset < 0 ||  Offset> > <Buffer.length ||
+  (Len > > <(Buffer.length - Offset)) || Len <0 >
+  MUST throw
+  <<<InvalidArgumentException>>> or another <<RuntimeException>>
+  including -but not limited to- <<<ArrayIndexOutOfBoundsException>>>
 
   [[1]] <<<S.read(null, int Offset, int Len )>>> MUST throw
   <<<NullPointerException>>>.
@@ -126,7 +126,7 @@ Hadoop FileSystem Specification
   to the contents of Buffer.
 
   Notes:
-  
+
   [[1]] the <<<InputStream>>> definition does not place any limit
   on how long <<read())>> may take to complete.
 
