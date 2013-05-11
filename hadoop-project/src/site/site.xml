@@ -53,6 +53,8 @@
       <item name="Hadoop Commands Reference" href="hadoop-project-dist/hadoop-common/CommandsManual.html"/>
       <item name="File System Shell" href="hadoop-project-dist/hadoop-common/FileSystemShell.html"/>
       <item name="Hadoop Compatibility" href="hadoop-project-dist/hadoop-common/Compatibility.html"/>
+      <item name="File System Specification"
+        href="hadoop-project-dist/hadoop-common/FileSystemSpecification.html"/>
     </menu>
 
     <menu name="Common" inherit="top">

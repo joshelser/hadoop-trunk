@@ -18,7 +18,7 @@
 
 Hadoop FileSystem Specification
 
-~~%{toc|section=1|fromDepth=0}
+%{toc|section=1|fromDepth=0}
 
 * {Introduction}
 
@@ -26,37 +26,42 @@ Hadoop FileSystem Specification
 
 * Definitions
 
+  <iff> is shorthand for <if and only if>
+
   <length(F: Path): Int> is a function which returns the length of a File, F
-  
+
   <exists(F: Path): boolean> is a function which returns <<<true>>> iff
   the path resolves to an file, directory or other entity within the filesystem.
-  
+
   <isDir(F: Path): boolean> is a function which returns <<<true>>> iff
   <exists(F)> and F represents a directory.
-  
+
   <isFile(F: Path): boolean > is a function which returns <<<true>>> iff
   <exists(F)> and F represents a file.
-  
+
   <isSymLink(F: Path): boolean > is a function which returns <<<true>>> iff
   <exists(F)> and F represents a symbolic link.
-  
-  <pos(S: Stream): int> is a function which returns the position of an 
+
+  <pos(S: Stream): int> is a function which returns the position of an
   input stream reading a file. 
-  
+
   <min(X: T, Y:T)>: T is a function which returns the smallest of <(X,Y)>.
-  
+
 
 * Foundational: Operations and failures
 
-    * All operations MUST complete, successfully or unsuccessfully, within a bounded
-     time period or throw an <<<IOException>>> or subclass thereof.
-    
+    * All operations MUST eventually complete, successfully or unsuccessfully,
+      throw an <<<IOException>>> or subclass thereof.
+
+    ** The time to complete an operation is undefined and may depend on
+    the implementation and on the state of the system.
+
     * Operations MAY throw a <<<RuntimeException>>> or subclass thereof.
     
     * Operations SHOULD raise all network, remote and high-level problems as
     an <<<IOException>>> or subclass thereof, and SHOULD NOT raise a
     <<<RuntimeException>>> for such problems.
-    
+
     * Operations SHOULD report failures by way of raised exceptions, rather
     than specific return codes of an operation.
     
@@ -65,12 +70,13 @@ Hadoop FileSystem Specification
     It MUST NOT be a superclass
 
     * If an operation is not implemented in a class, the implementation must
-    throw an <<UnsupportedOperationException>>
+    throw an <<<UnsupportedOperationException>>>
 
 * Invariants
 
 
-  [[1]] After all operations on <<<Seekable>>>, <<<InputStream>>> and <<<PositionedReadable>>>,
+  [[1]] After all operations on <<<Seekable>>>, <<<InputStream>>> and
+   <<<PositionedReadable>>>,
    <length(F)> MUST be unchanged, and the contents of the file <F> must be unchanged.
    Metadata about the file (e.g. the access time) MAY change.
 
@@ -87,7 +93,7 @@ Hadoop FileSystem Specification
   <<<InputStream>>>. For an <<<InputStream>>> <S> created from
   <<<FileSystem.open(F: Path): InputStream>>>, the following conditions MUST hold
 
-  [[1]] After <<<S.close())>>> all <<read>> operations are SHOULD fail with
+  [[1]] After <<<S.close())>>> all <<<read>>> operations are SHOULD fail with
   an exception. It MAY NOT, in which case the outcome of all futher operations
   are undefined.
   
@@ -99,26 +105,31 @@ Hadoop FileSystem Specification
 
   [[1]] <<<S.read(Buffer, Offset, Len)>>>
    where <Offset < 0 ||  Offset> > <Buffer.length ||
-   (Len > > <(Buffer.length - Offset)) || Len <0 > 
+   (Len > > <(Buffer.length - Offset)) || Len <0 >
    MUST throw
-   <<<InvalidArgumentException>>>
-  
+   <<<InvalidArgumentException>>> or another <<RuntimeException>>
+   including -but not limited to- <<<ArrayIndexOutOfBoundsException>>>
+
   [[1]] <<<S.read(null, int Offset, int Len )>>> MUST throw
   <<<NullPointerException>>>.
-  
-  
-  [[1]] <<<S.read(Buffer, Offset, 0 )>>> MUST return 0 if 
+
+  [[1]] <<<S.read(Buffer, Offset, 0 )>>> MUST return 0 if
   the preceeding criteria have been met.
 
   [[1]] <<<S.read(Buffer, Offset, Len)>>>
   MUST fill <<<Buffer>>> with <min(Len, length(F)-Len)> entries from
   the input stream defined by <<<S.read()>>>
   and return the number of bytes written.
-  
+
   [[1]] <<<S.read(Buffer, Offset, Len)>>>
   where S has already streamed <length(F)> bytes MUST return -1 and make no changes
   to the contents of Buffer.
+
+  Notes:
   
+  [[1]] the <<<InputStream>>> definition does not place any limit
+  on how long <<read())>> may take to complete.
+
 * Seekable
 
   The interface <<<Seekable>>> MAY be implemented by classes that extend
@@ -138,8 +149,7 @@ public interface Seekable {
   For an <<<InputStream>>> <S> created from
   <<<FileSystem.open(F: Path): InputStream>>>, where <<<S instanceof Seekable>>>
   is true and <<<S.seek()>>> does not throw an <<<UnsupportedOperation>>> exemption,
-  the following conditions MUST hold
-
+  the following conditions MUST hold:-
 
   [[1]] For a newly opened input stream <S>, <<<S.getPos()>>> MUST
   equal 0.
@@ -147,7 +157,7 @@ public interface Seekable {
   [[1]] For all values of <P> in <Long> where <<<S.seek(P)>>> does 
   throw an exception, the outcomes of <<<S.getPos()>>> and <<<S.read()>>>
   operations are undefined.
-  
+
   [[1]] After <<<S.close()>>>, <<<S.seek(P)>>> MUST fail with an <<<IOException>>>
 
   [[1]] For all values of <P1>, <P2> in <Long>,  <<<S.seek(P1)>>> followed
@@ -170,7 +180,7 @@ public interface Seekable {
   change the cursor position with in the file. This is considered a no-op
   that MAY therefore be bypassed completely.
 
-  [[1]] For all S, P where <P = S.getPos()> and <P < length(F)>, 
+  [[1]] For all S, P where <P = S.getPos()> and <P < length(F)>,
   after <<<S.read())>>> , <<<S.getPos()>>> MUST equal <<<P+1>>>.
 
   [[1]] After <<<S.seek(P)>>> with <P> >=<length(F)>, If an exception is not thrown 
@@ -181,32 +191,37 @@ public interface Seekable {
   The value of <<<S.getPos()>>> MUST be unchanged.
 
   [[1]] On <<<S.seek(P)>>> with < P >length(F) >,
-   if an <<<IOException>>> is not
-   thrown, then <<<S.read()>>> and
-   <<<S.read(byte[] buffer, int offset, int len )>>>
-   operation MUST return -1. 
+  if an <<<IOException>>> is not
+  thrown, then <<<S.read()>>> and
+  <<<S.read(byte[] buffer, int offset, int len )>>>
+  operation MUST return -1.
 
   [[1]] On <<<S.seek(P)>>> with <P> ><length(F)>,
-   if an <<<IOException>>> is not
-   thrown, <<<S.read(Buffer, Offset, Len )>>>
-   operation MUST return -1, and the contents of <Buffer> unchanged.
+  if an <<<IOException>>> is not
+  thrown, <<<S.read(Buffer, Offset, Len )>>>
+  operation MUST return -1, and the contents of <Buffer> unchanged.
 
   [[1]] After a <<<S.seek(P)>>> with <0<=P<length(file)>,
    <<<read(Buffer,0,1)>>> MUST set <<<Buffer[0]>>> to the byte at position <P> in the file,
-   and <<<S.getPos()>>> MUST equal <P+1> 
-   
+   and <<<S.getPos()>>> MUST equal <P+1>
 
 * PositionedReadable
 
   [[1]] The result <R> of <<<S.read(P, Buffer, Offset, Len )>>> MUST be identical
   to the sequence
-  
+
 -----------
-   P0 = S.getPos()
-   S.seek(P)
-   R = S.read( Buffer, Offset, Len )
-   S.seek(P0)
+  P0 = S.getPos()
+  try {
+    S.seek(P)
+    R = S.read( Buffer, Offset, Len )
+  } finally {
+    S.seek(P0)
+  }
 -----------
 
-  [[1]] Special case: The outcome of <<<S.read(S.getPos()), Buffer, Offset, Len )>>> MUST be identical
-  to that of the operation <<<S.read( Buffer, Offset, Len )>>>. 
+  [[1]] Special case: The outcome of <<<S.read(S.getPos()), Buffer, Offset, Len )>>>
+  MUST be identical to that of the operation <<<S.read( Buffer, Offset, Len )>>>.
+
+  [[1]] The result <R> of <<<S.read(P, Buffer, Offset, Len )>>> MUST be identical
+  to the sequence
