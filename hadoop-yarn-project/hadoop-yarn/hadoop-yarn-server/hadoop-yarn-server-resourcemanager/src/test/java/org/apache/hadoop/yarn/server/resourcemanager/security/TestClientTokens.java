@@ -53,7 +53,6 @@ import org.apache.hadoop.yarn.api.protocolrecords.StartContainerResponse;
 import org.apache.hadoop.yarn.api.protocolrecords.StopContainerRequest;
 import org.apache.hadoop.yarn.api.protocolrecords.StopContainerResponse;
 import org.apache.hadoop.yarn.api.records.ApplicationAttemptId;
-import org.apache.hadoop.yarn.api.records.ApplicationId;
 import org.apache.hadoop.yarn.api.records.ApplicationReport;
 import org.apache.hadoop.yarn.api.records.ClientToken;
 import org.apache.hadoop.yarn.event.Dispatcher;
@@ -126,7 +125,7 @@ public class TestClientTokens {
     }
 
     @Override
-    protected void innerStart() throws Exception {
+    protected void serviceStart() throws Exception {
       Configuration conf = getConfig();
 
       ClientToAMTokenSecretManager secretManager = null;
@@ -143,7 +142,7 @@ public class TestClientTokens {
       }
       server.start();
       this.address = NetUtils.getConnectAddress(server);
-      super.innerStart();
+      super.serviceStart();
     }
   }
 

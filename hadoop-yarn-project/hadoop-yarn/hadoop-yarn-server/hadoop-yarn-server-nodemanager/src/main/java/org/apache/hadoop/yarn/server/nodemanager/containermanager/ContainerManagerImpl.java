@@ -152,7 +152,7 @@ public class ContainerManagerImpl extends CompositeService implements
 
     // Start configurable services
     auxiliaryServices = new AuxServices();
-    auxiliaryServices.register(this);
+    auxiliaryServices.registerServiceListener(this);
     addService(auxiliaryServices);
 
     this.containersMonitor =
@@ -173,13 +173,13 @@ public class ContainerManagerImpl extends CompositeService implements
   }
 
   @Override
-  public void innerInit(Configuration conf) throws Exception {
+  public void serviceInit(Configuration conf) throws Exception {
     LogHandler logHandler =
       createLogHandler(conf, this.context, this.deletionService);
     addIfService(logHandler);
     dispatcher.register(LogHandlerEventType.class, logHandler);
     
-    super.innerInit(conf);
+    super.serviceInit(conf);
   }
 
   private void addIfService(Object object) {
@@ -216,7 +216,7 @@ public class ContainerManagerImpl extends CompositeService implements
   }
 
   @Override
-  protected void innerStart() throws Exception {
+  protected void serviceStart() throws Exception {
 
     // Enqueue user dirs in deletion context
 
@@ -249,7 +249,7 @@ public class ContainerManagerImpl extends CompositeService implements
     this.context.getNodeId().setHost(connectAddress.getHostName());
     this.context.getNodeId().setPort(connectAddress.getPort());
     LOG.info("ContainerManager started at " + connectAddress);
-    super.innerStart();
+    super.serviceStart();
   }
 
   void refreshServiceAcls(Configuration configuration, 
@@ -258,14 +258,14 @@ public class ContainerManagerImpl extends CompositeService implements
   }
 
   @Override
-  public void innerStop() throws Exception {
+  public void serviceStop() throws Exception {
     if (auxiliaryServices.getServiceState() == STARTED) {
-      auxiliaryServices.unregister(this);
+      auxiliaryServices.unregisterServiceListener(this);
     }
     if (server != null) {
       server.stop();
     }
-    super.innerStop();
+    super.serviceStop();
   }
 
   // Get the remoteUGI corresponding to the api call.

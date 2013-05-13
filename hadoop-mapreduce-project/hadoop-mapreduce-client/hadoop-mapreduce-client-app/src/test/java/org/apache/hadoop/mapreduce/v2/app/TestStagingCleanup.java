@@ -260,8 +260,8 @@ import org.junit.Test;
      }
 
      @Override
-     public void innerStart() throws Exception {
-       super.innerStart();
+     public void serviceStart() throws Exception {
+       super.serviceStart();
        DefaultMetricsSystem.shutdown();
      }
 
@@ -349,9 +349,9 @@ import org.junit.Test;
       }
 
       @Override
-      protected void innerStop() throws Exception {
+      protected void serviceStop() throws Exception {
         stoppedContainerAllocator = true;
-        super.innerStop();
+        super.serviceStop();
       }
     }
 

@@ -347,7 +347,7 @@ class JHEvenHandlerForTest extends JobHistoryEventHandler {
   }
 
   @Override
-  protected void innerStart() {
+  protected void serviceStart() {
   }
 
   @Override

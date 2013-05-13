@@ -30,12 +30,8 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.yarn.api.records.ApplicationId;
-import org.apache.hadoop.yarn.api.records.ContainerId;
 import org.apache.hadoop.yarn.conf.YarnConfiguration;
 import org.apache.hadoop.yarn.factory.providers.RecordFactoryProvider;
-import org.apache.hadoop.yarn.server.nodemanager.containermanager.AuxServices;
-import org.apache.hadoop.yarn.server.nodemanager.containermanager.AuxServicesEvent;
-import org.apache.hadoop.yarn.server.nodemanager.containermanager.AuxServicesEventType;
 import org.apache.hadoop.yarn.service.AbstractService;
 import org.apache.hadoop.yarn.service.Service;
 
@@ -70,16 +66,16 @@ public class TestAuxServices {
     }
 
     @Override
-    protected void innerInit(Configuration conf) throws Exception {
+    protected void serviceInit(Configuration conf) throws Exception {
       remaining_init = conf.getInt(idef + ".expected.init", 0);
       remaining_stop = conf.getInt(idef + ".expected.stop", 0);
-      super.innerInit(conf);
+      super.serviceInit(conf);
     }
     @Override
-    protected void innerStop() throws Exception {
+    protected void serviceStop() throws Exception {
       assertEquals(0, remaining_init);
       assertEquals(0, remaining_stop);
-      super.innerStop();
+      super.serviceStop();
     }
     @Override
     public void initApp(String user, ApplicationId appId, ByteBuffer data) {

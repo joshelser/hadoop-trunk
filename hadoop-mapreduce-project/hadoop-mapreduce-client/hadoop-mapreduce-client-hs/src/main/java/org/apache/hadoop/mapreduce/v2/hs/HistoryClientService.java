@@ -113,7 +113,7 @@ public class HistoryClientService extends AbstractService {
     this.jhsDTSecretManager = jhsDTSecretManager;
   }
 
-  protected void innerStart() throws Exception {
+  protected void serviceStart() throws Exception {
     Configuration conf = getConfig();
     YarnRPC rpc = YarnRPC.create(conf);
     initializeWebApp(conf);
@@ -140,7 +140,7 @@ public class HistoryClientService extends AbstractService {
                                               server.getListenerAddress());
     LOG.info("Instantiated MRClientService at " + this.bindAddress);
 
-    super.innerStart();
+    super.serviceStart();
   }
 
   private void initializeWebApp(Configuration conf) {
@@ -157,14 +157,14 @@ public class HistoryClientService extends AbstractService {
   }
 
   @Override
-  protected void innerStop() throws Exception {
+  protected void serviceStop() throws Exception {
     if (server != null) {
       server.stop();
     }
     if (webApp != null) {
       webApp.stop();
     }
-    super.innerStop();
+    super.serviceStop();
   }
 
   @Private

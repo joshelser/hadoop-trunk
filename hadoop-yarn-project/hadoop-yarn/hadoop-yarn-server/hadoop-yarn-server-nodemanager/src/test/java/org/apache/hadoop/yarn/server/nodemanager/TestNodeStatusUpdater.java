@@ -318,10 +318,10 @@ public class TestNodeStatusUpdater {
     }
 
     @Override
-    protected void innerStart() throws Exception {
+    protected void serviceStart() throws Exception {
       //record the startup time
       this.waitStartTime = System.currentTimeMillis();
-      super.innerStart();
+      super.serviceStart();
     }
 
     @Override
@@ -413,8 +413,8 @@ public class TestNodeStatusUpdater {
     }
 
     @Override
-    protected void innerStop() throws Exception {
-      super.innerStop();
+    protected void serviceStop() throws Exception {
+      super.serviceStop();
       isStopped = true;
       syncBarrier.await(10000, TimeUnit.MILLISECONDS);
     }
@@ -925,7 +925,7 @@ public class TestNodeStatusUpdater {
         return new ContainerManagerImpl(context, exec, del, nodeStatusUpdater,
           metrics, aclsManager, diskhandler) {
           @Override
-          protected void innerStart() {
+          protected void serviceStart() {
             // Simulating failure of starting RPC server
             throw new YarnException("Starting of RPC Server failed");
           }
