@@ -170,7 +170,6 @@ public class NodeStatusUpdaterImpl extends AbstractService implements
     } catch (Exception e) {
       throw new AvroRuntimeException(e);
     }
-    super.serviceStart();
   }
 
   @Override
