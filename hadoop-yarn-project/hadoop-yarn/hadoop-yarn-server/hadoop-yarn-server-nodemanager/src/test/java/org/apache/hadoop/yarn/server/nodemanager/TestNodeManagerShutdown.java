@@ -79,6 +79,7 @@ public class TestNodeManagerShutdown {
   static final String user = "nobody";
   private FileContext localFS;
   private ContainerId cId;
+  private NodeManager nm;
 
   @Before
   public void setup() throws UnsupportedFileSystemException {
@@ -94,6 +95,9 @@ public class TestNodeManagerShutdown {
   
   @After
   public void tearDown() throws IOException, InterruptedException {
+    if (nm != null) {
+      nm.stop();
+    }
     localFS.delete(new Path(basedir.getPath()), true);
   }
   
@@ -101,6 +105,7 @@ public class TestNodeManagerShutdown {
   public void testKillContainersOnShutdown() throws IOException,
       YarnRemoteException {
     NodeManager nm = getNodeManager();
+    nm = getNodeManager();
     nm.init(createNMConfig());
     nm.start();
     startContainer(nm, cId, localFS, tmpDir, processStartFile);

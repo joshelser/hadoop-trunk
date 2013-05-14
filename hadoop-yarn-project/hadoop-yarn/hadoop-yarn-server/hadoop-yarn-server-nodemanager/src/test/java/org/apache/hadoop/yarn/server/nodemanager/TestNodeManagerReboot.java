@@ -91,6 +91,7 @@ public class TestNodeManagerReboot {
   public void testClearLocalDirWhenNodeReboot() throws IOException,
       YarnRemoteException {
     nm = new MyNodeManager();
+    nm.init();
     nm.start();
     // create files under fileCache
     createFiles(nmLocalDir.getAbsolutePath(), ContainerLocalizer.FILECACHE, 100);
@@ -156,10 +157,10 @@ public class TestNodeManagerReboot {
     Assert.assertEquals(ContainerState.DONE, container.getContainerState());
 
     Assert.assertTrue(
-        "The container should create a subDir named currentUser: " + user +
-            "under localDir/usercache",
-        numOfLocalDirs(nmLocalDir.getAbsolutePath(),
-            ContainerLocalizer.USERCACHE) > 0);
+      "The container should create a subDir named currentUser: " + user +
+      "under localDir/usercache",
+      numOfLocalDirs(nmLocalDir.getAbsolutePath(),
+                     ContainerLocalizer.USERCACHE) > 0);
 
     Assert.assertTrue("There should be files or Dirs under nm_private when " +
         "container is launched", numOfLocalDirs(nmLocalDir.getAbsolutePath(),
@@ -241,9 +242,12 @@ public class TestNodeManagerReboot {
 
     public MyNodeManager() {
       super();
-      this.init(createNMConfig());
     }
 
+    public void init() {
+      init(createNMConfig());
+    }
+  
     @Override
     protected NodeStatusUpdater createNodeStatusUpdater(Context context,
         Dispatcher dispatcher, NodeHealthCheckerService healthChecker) {
