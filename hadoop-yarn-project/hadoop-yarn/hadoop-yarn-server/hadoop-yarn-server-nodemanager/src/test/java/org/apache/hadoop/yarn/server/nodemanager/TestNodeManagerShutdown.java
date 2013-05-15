@@ -104,7 +104,6 @@ public class TestNodeManagerShutdown {
   @Test
   public void testKillContainersOnShutdown() throws IOException,
       YarnRemoteException {
-    NodeManager nm = getNodeManager();
     nm = getNodeManager();
     nm.init(createNMConfig());
     nm.start();
