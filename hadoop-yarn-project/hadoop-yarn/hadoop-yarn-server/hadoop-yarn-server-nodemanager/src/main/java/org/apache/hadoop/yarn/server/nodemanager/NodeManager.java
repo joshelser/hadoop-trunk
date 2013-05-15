@@ -218,8 +218,9 @@ public class NodeManager extends CompositeService
     if (isStopping.getAndSet(true)) {
       return;
     }
-
-    cleanupContainers(NodeManagerEventType.SHUTDOWN);
+    if (context != null) {
+      cleanupContainers(NodeManagerEventType.SHUTDOWN);
+    }
     super.serviceStop();
     DefaultMetricsSystem.shutdown();
   }
