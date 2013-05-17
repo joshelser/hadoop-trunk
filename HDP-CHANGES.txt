@@ -78,3 +78,5 @@ Bianchi (Bimota Patch release)
     MAPREDUCE-4451. fairscheduler fail to init job with kerberos authentication 
     configured. (erik.fang via tucu)
 
+    MAPREDUCE-5256. CombineInputFormat isn't thread safe thus affecting
+    HiveServer. (vinodkv)
