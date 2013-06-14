@@ -23,6 +23,7 @@ import java.util.concurrent.ConcurrentMap;
 import org.apache.hadoop.yarn.api.records.ApplicationId;
 import org.apache.hadoop.yarn.api.records.NodeId;
 import org.apache.hadoop.yarn.event.Dispatcher;
+import org.apache.hadoop.yarn.server.resourcemanager.history.RMHistoryStore;
 import org.apache.hadoop.yarn.server.resourcemanager.recovery.RMStateStore;
 import org.apache.hadoop.yarn.server.resourcemanager.rmapp.RMApp;
 import org.apache.hadoop.yarn.server.resourcemanager.rmapp.attempt.AMLivelinessMonitor;
@@ -43,6 +44,8 @@ public interface RMContext {
   
   RMStateStore getStateStore();
 
+  RMHistoryStore getHistoryStore();
+  
   ConcurrentMap<ApplicationId, RMApp> getRMApps();
   
   ConcurrentMap<String, RMNode> getInactiveRMNodes();

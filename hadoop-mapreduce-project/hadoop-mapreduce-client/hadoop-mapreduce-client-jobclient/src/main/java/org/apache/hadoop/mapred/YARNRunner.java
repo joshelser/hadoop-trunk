@@ -85,6 +85,7 @@ import org.apache.hadoop.yarn.factory.providers.RecordFactoryProvider;
 import org.apache.hadoop.yarn.security.client.RMTokenSelector;
 import org.apache.hadoop.yarn.util.ConverterUtils;
 import org.apache.hadoop.yarn.util.ProtoUtils;
+import org.apache.hadoop.yarn.util.WorkflowContext;
 
 import com.google.common.annotations.VisibleForTesting;
 
@@ -451,6 +452,18 @@ public class YARNRunner implements ClientProtocol {
     MRApps.setEnvFromInputString(environment, 
         conf.get(MRJobConfig.MR_AM_ENV));
 
+    // Setup job info
+    environment.put(YarnConfiguration.APPLICATION_WORKFLOW_CONTEXT, 
+        WorkflowContext.create(conf.get(MRJobConfig.WORKFLOW_ID),
+            conf.get(MRJobConfig.WORKFLOW_NAME),
+            conf.get(MRJobConfig.WORKFLOW_NODE_NAME),
+            conf.get(MRJobConfig.WORKFLOW_TAGS),
+            conf.getValByRegex(MRJobConfig.WORKFLOW_ADJACENCY_PREFIX_PATTERN),
+            MRJobConfig.WORKFLOW_ADJACENCY_PREFIX_STRING.length()));
+    String mrJobInfo = 
+        conf.get(MRJobConfig.NUM_MAPS) + "-" + conf.get(MRJobConfig.NUM_REDUCES);
+    environment.put(YarnConfiguration.APPLICATION_INFO, mrJobInfo);
+    
     // Parse distributed cache
     MRApps.setupDistributedCache(jobConf, localResources);
 

@@ -724,6 +724,13 @@ public class YarnConfiguration extends Configuration {
       YARN_PREFIX + "client.nodemanager-client-async.thread-pool-max-size";
   public static final int DEFAULT_NM_CLIENT_ASYNC_THREAD_POOL_MAX_SIZE = 500;
 
+  /** The class to use as the persistent store for RM history.*/
+  public static final String RM_HISTORY_PREFIX = RM_PREFIX + "history-store."; 
+  public static final String RM_HISTORY_STORE = RM_HISTORY_PREFIX + "class";
+
+  public static final String APPLICATION_WORKFLOW_CONTEXT = "APPLICATION_WORKFLOW_CONTEXT";
+  public static final String APPLICATION_INFO = "APPLICATION_INFO";
+
   public YarnConfiguration() {
     super();
   }
