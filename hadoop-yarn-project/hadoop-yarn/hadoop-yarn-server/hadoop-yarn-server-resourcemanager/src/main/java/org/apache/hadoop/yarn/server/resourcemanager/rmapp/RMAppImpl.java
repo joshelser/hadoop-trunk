@@ -52,8 +52,6 @@ import org.apache.hadoop.yarn.server.resourcemanager.ApplicationMasterService;
 import org.apache.hadoop.yarn.server.resourcemanager.RMAppManagerEvent;
 import org.apache.hadoop.yarn.server.resourcemanager.RMAppManagerEventType;
 import org.apache.hadoop.yarn.server.resourcemanager.RMContext;
-import org.apache.hadoop.yarn.server.resourcemanager.history.RMHistoryAppCompletedEvent;
-import org.apache.hadoop.yarn.server.resourcemanager.history.RMHistoryAppSubmittedEvent;
 import org.apache.hadoop.yarn.server.resourcemanager.recovery.RMStateStore.ApplicationState;
 import org.apache.hadoop.yarn.server.resourcemanager.recovery.RMStateStore.RMState;
 import org.apache.hadoop.yarn.server.resourcemanager.recovery.Recoverable;
@@ -630,9 +628,6 @@ public class RMAppImpl implements RMApp, Recoverable {
       }
 
       app.createNewAttempt(true);
-      
-      // RM Application History
-      app.rmContext.getHistoryStore().launchApplication(app);
     };
   }
 
@@ -653,10 +648,6 @@ public class RMAppImpl implements RMApp, Recoverable {
       // communication
       LOG.info("Storing application with id " + app.applicationId);
       app.rmContext.getStateStore().storeApplication(app);
-      
-      // RM Application History
-      app.rmContext.getHistoryStore().submitApplication(app);
-      
     }
   }
 
@@ -666,10 +657,6 @@ public class RMAppImpl implements RMApp, Recoverable {
           (RMAppFinishedAttemptEvent)event;
       app.diagnostics.append(finishedEvent.getDiagnostics());
       super.transition(app, event);
-      
-      // RM Application History
-      app.rmContext.getHistoryStore().completeApplication(app, 
-          RMAppState.FINISHED);
     };
   }
 
@@ -678,10 +665,6 @@ public class RMAppImpl implements RMApp, Recoverable {
     public void transition(RMAppImpl app, RMAppEvent event) {
       app.diagnostics.append("Application killed by user.");
       super.transition(app, event);
-      
-      // RM Application History
-      app.rmContext.getHistoryStore().completeApplication(app, 
-          RMAppState.KILLED);
     };
   }
 
@@ -692,10 +675,6 @@ public class RMAppImpl implements RMApp, Recoverable {
       app.handler.handle(new RMAppAttemptEvent(app.currentAttempt.getAppAttemptId(),
           RMAppAttemptEventType.KILL));
       super.transition(app, event);
-      
-      // RM Application History
-      app.rmContext.getHistoryStore().completeApplication(app, 
-          RMAppState.KILLED);
     }
   }
   private static final class AppRejectedTransition extends
@@ -704,10 +683,6 @@ public class RMAppImpl implements RMApp, Recoverable {
       RMAppRejectedEvent rejectedEvent = (RMAppRejectedEvent)event;
       app.diagnostics.append(rejectedEvent.getMessage());
       super.transition(app, event);
-      
-      // RM Application History
-      app.rmContext.getHistoryStore().completeApplication(app, 
-          RMAppState.FAILED);
     };
   }
 

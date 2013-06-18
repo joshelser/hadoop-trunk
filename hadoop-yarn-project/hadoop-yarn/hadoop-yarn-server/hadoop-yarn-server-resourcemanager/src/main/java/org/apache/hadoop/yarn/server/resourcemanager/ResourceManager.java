@@ -45,8 +45,6 @@ import org.apache.hadoop.yarn.event.EventHandler;
 import org.apache.hadoop.yarn.exceptions.YarnRuntimeException;
 import org.apache.hadoop.yarn.server.resourcemanager.amlauncher.AMLauncherEventType;
 import org.apache.hadoop.yarn.server.resourcemanager.amlauncher.ApplicationMasterLauncher;
-import org.apache.hadoop.yarn.server.resourcemanager.history.RMHistoryFactory;
-import org.apache.hadoop.yarn.server.resourcemanager.history.RMHistoryStore;
 import org.apache.hadoop.yarn.server.resourcemanager.recovery.NullRMStateStore;
 import org.apache.hadoop.yarn.server.resourcemanager.recovery.RMStateStore;
 import org.apache.hadoop.yarn.server.resourcemanager.recovery.RMStateStore.RMState;
@@ -192,17 +190,8 @@ public class ResourceManager extends CompositeService implements Recoverable {
       ExitUtil.terminate(1, e);
     }
     
-    RMHistoryStore rmHistoryStore = null;
-    try {
-      rmHistoryStore = RMHistoryFactory.getStore(conf);
-      rmHistoryStore.init(conf);
-    } catch (Exception e) {
-      LOG.error("Failed to init history store", e);
-      ExitUtil.terminate(1, e);
-    }
-    
     this.rmContext =
-        new RMContextImpl(this.rmDispatcher, rmStore, rmHistoryStore,
+        new RMContextImpl(this.rmDispatcher, rmStore,
           this.containerAllocationExpirer, amLivelinessMonitor,
           amFinishingMonitor, tokenRenewer, this.appTokenSecretManager,
           this.containerTokenSecretManager, this.nmTokenSecretManager,
@@ -646,21 +635,12 @@ public class ResourceManager extends CompositeService implements Recoverable {
     DefaultMetricsSystem.shutdown();
 
     if (rmContext != null) {
-
-      RMHistoryStore historyStore = rmContext.getHistoryStore();
-      try {
-        historyStore.close();
-      } catch (Exception e) {
-        LOG.error("Error closing historyStore.", e);
-      }
-
       RMStateStore store = rmContext.getStateStore();
       try {
         store.close();
       } catch (Exception e) {
         LOG.error("Error closing store.", e);
       }
-    
     }
 
     super.serviceStop();
