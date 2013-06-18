@@ -59,7 +59,7 @@ import org.apache.hadoop.security.Credentials;
 import org.apache.hadoop.security.SecurityUtil;
 import org.apache.hadoop.security.UserGroupInformation;
 import org.apache.hadoop.security.token.Token;
-import org.apache.hadoop.yarn.api.ClientRMProtocol;
+import org.apache.hadoop.yarn.api.ApplicationClientProtocol;
 import org.apache.hadoop.yarn.api.protocolrecords.GetAllApplicationsRequest;
 import org.apache.hadoop.yarn.api.protocolrecords.GetAllApplicationsResponse;
 import org.apache.hadoop.yarn.api.protocolrecords.GetApplicationReportRequest;
@@ -82,6 +82,7 @@ import org.apache.hadoop.yarn.api.records.ContainerLaunchContext;
 import org.apache.hadoop.yarn.api.records.QueueInfo;
 import org.apache.hadoop.yarn.api.records.YarnApplicationState;
 import org.apache.hadoop.yarn.api.records.YarnClusterMetrics;
+import org.apache.hadoop.yarn.client.api.impl.YarnClientImpl;
 import org.apache.hadoop.yarn.conf.YarnConfiguration;
 import org.apache.hadoop.yarn.factories.RecordFactory;
 import org.apache.hadoop.yarn.factory.providers.RecordFactoryProvider;
@@ -197,11 +198,12 @@ public class TestYARNRunner extends TestCase {
   @Test(timeout=20000)
   public void testResourceMgrDelegate() throws Exception {
     /* we not want a mock of resource mgr delegate */
-    final ClientRMProtocol clientRMProtocol = mock(ClientRMProtocol.class);
+    final ApplicationClientProtocol clientRMProtocol = mock(ApplicationClientProtocol.class);
     ResourceMgrDelegate delegate = new ResourceMgrDelegate(conf) {
       @Override
-      protected void serviceStart() {
-        this.rmClient = clientRMProtocol;
+      protected void serviceStart() throws Exception {
+        assertTrue(this.client instanceof YarnClientImpl);
+        ((YarnClientImpl) this.client).setRMClient(clientRMProtocol);
       }
     };
     /* make sure kill calls finish application master */

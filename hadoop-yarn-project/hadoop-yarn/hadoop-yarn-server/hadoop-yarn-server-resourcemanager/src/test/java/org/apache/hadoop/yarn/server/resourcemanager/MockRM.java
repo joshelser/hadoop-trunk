@@ -29,7 +29,7 @@ import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.io.DataOutputBuffer;
 import org.apache.hadoop.security.Credentials;
 import org.apache.hadoop.security.UserGroupInformation;
-import org.apache.hadoop.yarn.api.ClientRMProtocol;
+import org.apache.hadoop.yarn.api.ApplicationClientProtocol;
 import org.apache.hadoop.yarn.api.protocolrecords.GetNewApplicationRequest;
 import org.apache.hadoop.yarn.api.protocolrecords.GetNewApplicationResponse;
 import org.apache.hadoop.yarn.api.protocolrecords.KillApplicationRequest;
@@ -96,7 +96,7 @@ public class MockRM extends ResourceManager {
     while (!finalState.equals(app.getState()) && timeoutSecs++ < 40) {
       System.out.println("App : " + appId + " State is : " + app.getState()
           + " Waiting for state : " + finalState);
-      Thread.sleep(1000);
+      Thread.sleep(2000);
     }
     System.out.println("App State is : " + app.getState());
     Assert.assertEquals("App state is not correct (timedout)", finalState,
@@ -123,7 +123,7 @@ public class MockRM extends ResourceManager {
 
   // get new application id
   public GetNewApplicationResponse getNewAppId() throws Exception {
-    ClientRMProtocol client = getClientRMService();
+    ApplicationClientProtocol client = getClientRMService();
     return client.getNewApplication(Records
         .newRecord(GetNewApplicationRequest.class));
   }
@@ -164,7 +164,7 @@ public class MockRM extends ResourceManager {
   public RMApp submitApp(int masterMemory, String name, String user,
       Map<ApplicationAccessType, String> acls, boolean unmanaged, String queue,
       int maxAppAttempts, Credentials ts, String appType) throws Exception {
-    ClientRMProtocol client = getClientRMService();
+    ApplicationClientProtocol client = getClientRMService();
     GetNewApplicationResponse resp = client.getNewApplication(Records
         .newRecord(GetNewApplicationRequest.class));
     ApplicationId appId = resp.getApplicationId();
@@ -201,7 +201,7 @@ public class MockRM extends ResourceManager {
       UserGroupInformation.createUserForTesting(user, new String[] {"someGroup"});
     PrivilegedAction<SubmitApplicationResponse> action =
       new PrivilegedAction<SubmitApplicationResponse>() {
-      ClientRMProtocol client;
+      ApplicationClientProtocol client;
       SubmitApplicationRequest req;
       @Override
       public SubmitApplicationResponse run() {
@@ -215,7 +215,7 @@ public class MockRM extends ResourceManager {
         return null;
       }
       PrivilegedAction<SubmitApplicationResponse> setClientReq(
-        ClientRMProtocol client, SubmitApplicationRequest req) {
+        ApplicationClientProtocol client, SubmitApplicationRequest req) {
         this.client = client;
         this.req = req;
         return this;
@@ -261,7 +261,7 @@ public class MockRM extends ResourceManager {
   }
 
   public void killApp(ApplicationId appId) throws Exception {
-    ClientRMProtocol client = getClientRMService();
+    ApplicationClientProtocol client = getClientRMService();
     KillApplicationRequest req = Records
         .newRecord(KillApplicationRequest.class);
     req.setApplicationId(appId);

@@ -22,7 +22,7 @@ import org.apache.hadoop.classification.InterfaceAudience.Private;
 import org.apache.hadoop.classification.InterfaceAudience.Public;
 import org.apache.hadoop.classification.InterfaceStability.Stable;
 import org.apache.hadoop.classification.InterfaceStability.Unstable;
-import org.apache.hadoop.yarn.api.ClientRMProtocol;
+import org.apache.hadoop.yarn.api.ApplicationClientProtocol;
 import org.apache.hadoop.yarn.util.Records;
 
 /**
@@ -40,13 +40,14 @@ import org.apache.hadoop.yarn.util.Records;
  *   </ul>
  * </p>
  *
- * @see ClientRMProtocol#getClusterNodes(org.apache.hadoop.yarn.api.protocolrecords.GetClusterNodesRequest)
+ * @see ApplicationClientProtocol#getClusterNodes(org.apache.hadoop.yarn.api.protocolrecords.GetClusterNodesRequest)
  */
 @Public
 @Stable
 public abstract class NodeReport {
 
   @Private
+  @Unstable
   public static NodeReport newInstance(NodeId nodeId, NodeState nodeState,
       String httpAddress, String rackName, Resource used, Resource capability,
       int numContainers, String healthReport, long lastHealthReportTime) {
@@ -67,6 +68,8 @@ public abstract class NodeReport {
    * Get the <code>NodeId</code> of the node.
    * @return <code>NodeId</code> of the node
    */
+  @Public
+  @Stable
   public abstract NodeId getNodeId();
   
   @Private
@@ -77,6 +80,8 @@ public abstract class NodeReport {
    * Get the <code>NodeState</code> of the node.
    * @return <code>NodeState</code> of the node
    */
+  @Public
+  @Stable
   public abstract NodeState getNodeState();
   
   @Private
@@ -132,11 +137,11 @@ public abstract class NodeReport {
   public abstract void setCapability(Resource capability);
   
   /**
-   * Get the <em>number of running containers</em> on the node.
-   * @return <em>number of running containers</em> on the node
+   * Get the <em>number of allocated containers</em> on the node.
+   * @return <em>number of allocated containers</em> on the node
    */
-  @Public
-  @Stable
+  @Private
+  @Unstable
   public abstract int getNumContainers();
   
   @Private

@@ -18,7 +18,7 @@
 
 package org.apache.hadoop.yarn.server.nodemanager.containermanager;
 
-import static org.apache.hadoop.yarn.service.Service.STATE.STARTED;
+import static org.apache.hadoop.service.Service.STATE.STARTED;
 
 import java.io.IOException;
 import java.net.InetSocketAddress;
@@ -40,8 +40,11 @@ import org.apache.hadoop.security.UserGroupInformation;
 import org.apache.hadoop.security.authorize.PolicyProvider;
 import org.apache.hadoop.security.token.Token;
 import org.apache.hadoop.security.token.TokenIdentifier;
+import org.apache.hadoop.service.CompositeService;
+import org.apache.hadoop.service.Service;
+import org.apache.hadoop.service.ServiceStateChangeListener;
 import org.apache.hadoop.util.StringUtils;
-import org.apache.hadoop.yarn.api.ContainerManager;
+import org.apache.hadoop.yarn.api.ContainerManagementProtocol;
 import org.apache.hadoop.yarn.api.protocolrecords.GetContainerStatusRequest;
 import org.apache.hadoop.yarn.api.protocolrecords.GetContainerStatusResponse;
 import org.apache.hadoop.yarn.api.protocolrecords.StartContainerRequest;
@@ -100,14 +103,11 @@ import org.apache.hadoop.yarn.server.nodemanager.metrics.NodeManagerMetrics;
 import org.apache.hadoop.yarn.server.nodemanager.security.authorize.NMPolicyProvider;
 import org.apache.hadoop.yarn.server.security.ApplicationACLsManager;
 import org.apache.hadoop.yarn.server.utils.BuilderUtils;
-import org.apache.hadoop.yarn.service.CompositeService;
-import org.apache.hadoop.yarn.service.Service;
-import org.apache.hadoop.yarn.service.ServiceStateChangeListener;
 
 import com.google.common.annotations.VisibleForTesting;
 
 public class ContainerManagerImpl extends CompositeService implements
-    ServiceStateChangeListener, ContainerManager,
+    ServiceStateChangeListener, ContainerManagementProtocol,
     EventHandler<ContainerManagerEvent> {
 
   private static final Log LOG = LogFactory.getLog(ContainerManagerImpl.class);
@@ -233,7 +233,7 @@ public class ContainerManagerImpl extends CompositeService implements
         YarnConfiguration.DEFAULT_NM_PORT);
 
     server =
-        rpc.getServer(ContainerManager.class, this, initialAddress, conf,
+        rpc.getServer(ContainerManagementProtocol.class, this, initialAddress, conf,
             this.context.getContainerTokenSecretManager(),
             conf.getInt(YarnConfiguration.NM_CONTAINER_MGR_THREAD_COUNT, 
                 YarnConfiguration.DEFAULT_NM_CONTAINER_MGR_THREAD_COUNT));
@@ -491,8 +491,7 @@ public class ContainerManagerImpl extends CompositeService implements
         applicationID, containerID);
 
     StartContainerResponse response =
-        recordFactory.newRecordInstance(StartContainerResponse.class);
-    response.setAllServiceResponse(auxiliaryServices.getMeta());
+        StartContainerResponse.newInstance(auxiliaryServices.getMetaData());
     // TODO launchedContainer misplaced -> doesn't necessarily mean a container
     // launch. A finished Application will not launch containers.
     metrics.launchedContainer();

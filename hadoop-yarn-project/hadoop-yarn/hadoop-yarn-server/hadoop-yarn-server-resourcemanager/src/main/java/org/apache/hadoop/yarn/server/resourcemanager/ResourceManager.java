@@ -30,6 +30,9 @@ import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.metrics2.lib.DefaultMetricsSystem;
 import org.apache.hadoop.metrics2.source.JvmMetrics;
 import org.apache.hadoop.security.SecurityUtil;
+import org.apache.hadoop.service.AbstractService;
+import org.apache.hadoop.service.CompositeService;
+import org.apache.hadoop.service.Service;
 import org.apache.hadoop.util.ExitUtil;
 import org.apache.hadoop.util.ReflectionUtils;
 import org.apache.hadoop.util.ShutdownHookManager;
@@ -64,7 +67,7 @@ import org.apache.hadoop.yarn.server.resourcemanager.rmnode.RMNodeEventType;
 import org.apache.hadoop.yarn.server.resourcemanager.scheduler.ResourceScheduler;
 import org.apache.hadoop.yarn.server.resourcemanager.scheduler.event.SchedulerEvent;
 import org.apache.hadoop.yarn.server.resourcemanager.scheduler.event.SchedulerEventType;
-import org.apache.hadoop.yarn.server.resourcemanager.security.ApplicationTokenSecretManager;
+import org.apache.hadoop.yarn.server.resourcemanager.security.AMRMTokenSecretManager;
 import org.apache.hadoop.yarn.server.resourcemanager.security.ClientToAMTokenSecretManagerInRM;
 import org.apache.hadoop.yarn.server.resourcemanager.security.DelegationTokenRenewer;
 import org.apache.hadoop.yarn.server.resourcemanager.security.RMContainerTokenSecretManager;
@@ -76,9 +79,6 @@ import org.apache.hadoop.yarn.server.webproxy.AppReportFetcher;
 import org.apache.hadoop.yarn.server.webproxy.ProxyUriUtils;
 import org.apache.hadoop.yarn.server.webproxy.WebAppProxy;
 import org.apache.hadoop.yarn.server.webproxy.WebAppProxyServlet;
-import org.apache.hadoop.yarn.service.AbstractService;
-import org.apache.hadoop.yarn.service.CompositeService;
-import org.apache.hadoop.yarn.service.Service;
 import org.apache.hadoop.yarn.webapp.WebApp;
 import org.apache.hadoop.yarn.webapp.WebApps;
 import org.apache.hadoop.yarn.webapp.WebApps.Builder;
@@ -87,7 +87,7 @@ import com.google.common.annotations.VisibleForTesting;
 
 /**
  * The ResourceManager is the main class that is a set of components.
- * "I am the ResourceManager. All your resources are belong to us..."
+ * "I am the ResourceManager. All your resources belong to us..."
  *
  */
 @SuppressWarnings("unchecked")
@@ -107,7 +107,7 @@ public class ResourceManager extends CompositeService implements Recoverable {
   protected RMContainerTokenSecretManager containerTokenSecretManager;
   protected NMTokenSecretManagerInRM nmTokenSecretManager;
 
-  protected ApplicationTokenSecretManager appTokenSecretManager;
+  protected AMRMTokenSecretManager amRmTokenSecretManager;
 
   private Dispatcher rmDispatcher;
 
@@ -150,7 +150,7 @@ public class ResourceManager extends CompositeService implements Recoverable {
     this.rmDispatcher = createDispatcher();
     addIfService(this.rmDispatcher);
 
-    this.appTokenSecretManager = createApplicationTokenSecretManager(conf);
+    this.amRmTokenSecretManager = createAMRMTokenSecretManager(conf);
 
     this.containerAllocationExpirer = new ContainerAllocationExpirer(
         this.rmDispatcher);
@@ -193,7 +193,7 @@ public class ResourceManager extends CompositeService implements Recoverable {
     this.rmContext =
         new RMContextImpl(this.rmDispatcher, rmStore,
           this.containerAllocationExpirer, amLivelinessMonitor,
-          amFinishingMonitor, tokenRenewer, this.appTokenSecretManager,
+          amFinishingMonitor, tokenRenewer, this.amRmTokenSecretManager,
           this.containerTokenSecretManager, this.nmTokenSecretManager,
           this.clientToAMSecretManager);
     
@@ -294,9 +294,9 @@ public class ResourceManager extends CompositeService implements Recoverable {
     }
   }
 
-  protected ApplicationTokenSecretManager createApplicationTokenSecretManager(
+  protected AMRMTokenSecretManager createAMRMTokenSecretManager(
       Configuration conf) {
-    return new ApplicationTokenSecretManager(conf);
+    return new AMRMTokenSecretManager(conf);
   }
 
   protected ResourceScheduler createScheduler() {
@@ -557,7 +557,7 @@ public class ResourceManager extends CompositeService implements Recoverable {
       throw new YarnRuntimeException("Failed to login", ie);
     }
 
-    this.appTokenSecretManager.start();
+    this.amRmTokenSecretManager.start();
     this.containerTokenSecretManager.start();
     this.nmTokenSecretManager.start();
 
@@ -617,8 +617,8 @@ public class ResourceManager extends CompositeService implements Recoverable {
       rmDTSecretManager.stopThreads();
     }
 
-    if (appTokenSecretManager != null) {
-      this.appTokenSecretManager.stop();
+    if (amRmTokenSecretManager != null) {
+      this.amRmTokenSecretManager.stop();
     }
     if (containerTokenSecretManager != null) {
       this.containerTokenSecretManager.stop();
@@ -731,8 +731,8 @@ public class ResourceManager extends CompositeService implements Recoverable {
   }
   
   @Private
-  public ApplicationTokenSecretManager getApplicationTokenSecretManager(){
-    return this.appTokenSecretManager;
+  public AMRMTokenSecretManager getAMRMTokenSecretManager(){
+    return this.amRmTokenSecretManager;
   }
 
   @Override

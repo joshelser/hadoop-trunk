@@ -21,17 +21,24 @@ package org.apache.hadoop.yarn.security;
 import java.io.DataInput;
 import java.io.DataOutput;
 import java.io.IOException;
+import java.net.InetSocketAddress;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.apache.hadoop.classification.InterfaceAudience.Public;
+import org.apache.hadoop.classification.InterfaceStability.Evolving;
 import org.apache.hadoop.io.Text;
+import org.apache.hadoop.net.NetUtils;
+import org.apache.hadoop.security.SecurityUtil;
 import org.apache.hadoop.security.UserGroupInformation;
 import org.apache.hadoop.security.token.TokenIdentifier;
 import org.apache.hadoop.yarn.api.records.ApplicationAttemptId;
 import org.apache.hadoop.yarn.api.records.ApplicationId;
 import org.apache.hadoop.yarn.api.records.NodeId;
+import org.apache.hadoop.yarn.api.records.Token;
 
-
+@Public
+@Evolving
 public class NMTokenIdentifier extends TokenIdentifier {
 
   private static Log LOG = LogFactory.getLog(NMTokenIdentifier.class);
@@ -106,5 +113,4 @@ public class NMTokenIdentifier extends TokenIdentifier {
   public UserGroupInformation getUser() {
     return UserGroupInformation.createRemoteUser(appAttemptId.toString());
   }
-
 }

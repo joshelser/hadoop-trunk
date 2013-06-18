@@ -14,6 +14,9 @@ Release 2.1.0-beta - UNRELEASED
     HDFS-2802. Add HDFS Snapshot feature.  (See breakdown of tasks below for
     subtasks and contributors)
 
+    HDFS-4866. Protocol buffer support cannot compile under C. (Arpit Agarwal via
+    cnauroth)
+
   NEW FEATURES
 
     HDFS-1804. Add a new block-volume device choosing policy that looks at
@@ -151,6 +154,12 @@ Release 2.1.0-beta - UNRELEASED
   OPTIMIZATIONS
 
   BUG FIXES
+
+    HDFS-4626. ClientProtocol#getLinkTarget should throw an exception for
+    non-symlink and non-existent paths.  (Andrew Wang via cmccabe)
+
+    HDFS-3934. duplicative dfs_hosts entries handled wrong. (Colin Patrick
+    McCabe)
     
     HDFS-4470. Several HDFS tests attempt file operations on invalid HDFS
     paths when running on Windows. (Chris Nauroth via suresh)
@@ -353,6 +362,11 @@ Release 2.1.0-beta - UNRELEASED
     HDFS-4845. FSNamesystem.deleteInternal should acquire write-lock before
     changing the inode map.  (Arpit Agarwal via szetszwo)
 
+    HDFS-4910. TestPermission failed in branch-2. (Chuan Liu via cnauroth)
+
+    HDFS-4906. HDFS Output streams should not accept writes after being
+    closed. (atm)
+
   BREAKDOWN OF HDFS-347 SUBTASKS AND RELATED JIRAS
 
     HDFS-4353. Encapsulate connections to peers in Peer and PeerServer classes.
@@ -487,6 +501,9 @@ Release 2.1.0-beta - UNRELEASED
 
     HDFS-4783. TestDelegationTokensWithHA#testHAUtilClonesDelegationTokens fails
     on Windows. (cnauroth)
+
+    HDFS-4818. Several HDFS tests that attempt to make directories unusable do
+    not work correctly on Windows. (cnauroth)
 
   BREAKDOWN OF HDFS-2802 HDFS SNAPSHOT SUBTASKS AND RELATED JIRAS
 
@@ -862,6 +879,9 @@ Release 2.1.0-beta - UNRELEASED
 
     HDFS-4902. DFSClient.getSnapshotDiffReport should use string path rather 
     than o.a.h.fs.Path. (Binglin Chang via jing9) 
+
+    HDFS-4875. Add a test for testing snapshot file length. 
+    (Arpit Agarwal via jing9)
 
 Release 2.0.5-alpha - 06/06/2013
 

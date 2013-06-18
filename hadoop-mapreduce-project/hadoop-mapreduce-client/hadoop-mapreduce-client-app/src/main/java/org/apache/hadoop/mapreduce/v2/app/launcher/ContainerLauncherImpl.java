@@ -47,8 +47,9 @@ import org.apache.hadoop.mapreduce.v2.app.job.event.TaskAttemptEventType;
 import org.apache.hadoop.net.NetUtils;
 import org.apache.hadoop.security.UserGroupInformation;
 import org.apache.hadoop.security.token.Token;
+import org.apache.hadoop.service.AbstractService;
 import org.apache.hadoop.util.StringUtils;
-import org.apache.hadoop.yarn.api.ContainerManager;
+import org.apache.hadoop.yarn.api.ContainerManagementProtocol;
 import org.apache.hadoop.yarn.api.protocolrecords.StartContainerRequest;
 import org.apache.hadoop.yarn.api.protocolrecords.StartContainerResponse;
 import org.apache.hadoop.yarn.api.protocolrecords.StopContainerRequest;
@@ -57,8 +58,7 @@ import org.apache.hadoop.yarn.api.records.ContainerLaunchContext;
 import org.apache.hadoop.yarn.exceptions.YarnRuntimeException;
 import org.apache.hadoop.yarn.ipc.YarnRPC;
 import org.apache.hadoop.yarn.security.ContainerTokenIdentifier;
-import org.apache.hadoop.yarn.service.AbstractService;
-import org.apache.hadoop.yarn.util.ProtoUtils;
+import org.apache.hadoop.yarn.util.ConverterUtils;
 import org.apache.hadoop.yarn.util.Records;
 
 import com.google.common.util.concurrent.ThreadFactoryBuilder;
@@ -140,7 +140,7 @@ public class ContainerLauncherImpl extends AbstractService implements
         return;
       }
       
-      ContainerManager proxy = null;
+      ContainerManagementProtocol proxy = null;
       try {
 
         proxy = getCMProxy(containerID, containerMgrAddress,
@@ -158,7 +158,7 @@ public class ContainerLauncherImpl extends AbstractService implements
         StartContainerResponse response = proxy.startContainer(startRequest);
 
         ByteBuffer portInfo =
-            response.getAllServiceResponse().get(
+            response.getAllServicesMetaData().get(
                 ShuffleHandler.MAPREDUCE_SHUFFLE_SERVICEID);
         int port = -1;
         if(portInfo != null) {
@@ -198,7 +198,7 @@ public class ContainerLauncherImpl extends AbstractService implements
       } else if (!isCompletelyDone()) {
         LOG.info("KILLING " + taskAttemptID);
 
-        ContainerManager proxy = null;
+        ContainerManagementProtocol proxy = null;
         try {
           proxy = getCMProxy(this.containerID, this.containerMgrAddress,
               this.containerToken);
@@ -348,7 +348,7 @@ public class ContainerLauncherImpl extends AbstractService implements
     return new EventProcessor(event);
   }
 
-  protected ContainerManager getCMProxy(ContainerId containerID,
+  protected ContainerManagementProtocol getCMProxy(ContainerId containerID,
       final String containerManagerBindAddr,
       org.apache.hadoop.yarn.api.records.Token containerToken)
       throws IOException {
@@ -361,14 +361,14 @@ public class ContainerLauncherImpl extends AbstractService implements
         UserGroupInformation.createRemoteUser(containerID.toString());
 
     Token<ContainerTokenIdentifier> token =
-        ProtoUtils.convertFromProtoFormat(containerToken, cmAddr);
+        ConverterUtils.convertFromYarn(containerToken, cmAddr);
     user.addToken(token);
 
-    ContainerManager proxy = user
-        .doAs(new PrivilegedAction<ContainerManager>() {
+    ContainerManagementProtocol proxy = user
+        .doAs(new PrivilegedAction<ContainerManagementProtocol>() {
           @Override
-          public ContainerManager run() {
-            return (ContainerManager) rpc.getProxy(ContainerManager.class,
+          public ContainerManagementProtocol run() {
+            return (ContainerManagementProtocol) rpc.getProxy(ContainerManagementProtocol.class,
                 cmAddr, getConfig());
           }
         });

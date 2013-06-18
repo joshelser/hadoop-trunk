@@ -30,7 +30,8 @@ import org.apache.hadoop.fs.FileContext;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.fs.UnsupportedFileSystemException;
 import org.apache.hadoop.security.UserGroupInformation;
-import org.apache.hadoop.yarn.api.ContainerManager;
+import org.apache.hadoop.service.Service.STATE;
+import org.apache.hadoop.yarn.api.ContainerManagementProtocol;
 import org.apache.hadoop.yarn.api.protocolrecords.GetContainerStatusRequest;
 import org.apache.hadoop.yarn.api.records.ApplicationId;
 import org.apache.hadoop.yarn.api.records.ContainerId;
@@ -61,7 +62,6 @@ import org.apache.hadoop.yarn.server.nodemanager.metrics.NodeManagerMetrics;
 import org.apache.hadoop.yarn.server.nodemanager.security.NMContainerTokenSecretManager;
 import org.apache.hadoop.yarn.server.nodemanager.security.NMTokenSecretManagerInNM;
 import org.apache.hadoop.yarn.server.security.ApplicationACLsManager;
-import org.apache.hadoop.yarn.service.Service.STATE;
 import org.junit.After;
 import org.junit.Before;
 
@@ -210,13 +210,13 @@ public abstract class BaseContainerManagerTest {
         new Path(localDir.getAbsolutePath()), new Path[] {});
   }
 
-  public static void waitForContainerState(ContainerManager containerManager,
+  public static void waitForContainerState(ContainerManagementProtocol containerManager,
       ContainerId containerID, ContainerState finalState)
       throws InterruptedException, YarnException, IOException {
     waitForContainerState(containerManager, containerID, finalState, 20);
   }
 
-  public static void waitForContainerState(ContainerManager containerManager,
+  public static void waitForContainerState(ContainerManagementProtocol containerManager,
           ContainerId containerID, ContainerState finalState, int timeOutMax)
           throws InterruptedException, YarnException, IOException {
     GetContainerStatusRequest request =

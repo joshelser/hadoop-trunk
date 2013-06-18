@@ -20,7 +20,7 @@ package org.apache.hadoop.yarn.api.protocolrecords;
 
 import org.apache.hadoop.classification.InterfaceAudience.Public;
 import org.apache.hadoop.classification.InterfaceStability.Stable;
-import org.apache.hadoop.yarn.api.ContainerManager;
+import org.apache.hadoop.yarn.api.ContainerManagementProtocol;
 import org.apache.hadoop.yarn.api.records.ContainerId;
 import org.apache.hadoop.yarn.api.records.ContainerStatus;
 import org.apache.hadoop.yarn.util.Records;
@@ -29,12 +29,14 @@ import org.apache.hadoop.yarn.util.Records;
  * <p>The request sent by the <code>ApplicationMaster</code> to the
  * <code>NodeManager</code> to get {@link ContainerStatus} of a container.</p>
  * 
- * @see ContainerManager#getContainerStatus(GetContainerStatusRequest)
+ * @see ContainerManagementProtocol#getContainerStatus(GetContainerStatusRequest)
  */
 @Public
 @Stable
 public abstract class GetContainerStatusRequest {
 
+  @Public
+  @Stable
   public static GetContainerStatusRequest newInstance(ContainerId containerId) {
     GetContainerStatusRequest request =
         Records.newRecord(GetContainerStatusRequest.class);

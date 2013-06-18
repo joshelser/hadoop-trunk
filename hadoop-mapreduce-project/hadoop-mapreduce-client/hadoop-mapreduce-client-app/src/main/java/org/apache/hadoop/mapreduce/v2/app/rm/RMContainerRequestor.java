@@ -241,7 +241,7 @@ public abstract class RMContainerRequestor extends RMCommunicator {
               ResourceRequest zeroedRequest =
                   ResourceRequest.newInstance(req.getPriority(),
                     req.getResourceName(), req.getCapability(),
-                    req.getNumContainers());
+                    req.getNumContainers(), req.getRelaxLocality());
 
               zeroedRequest.setNumContainers(0);
               // to be sent to RM on next heartbeat
@@ -423,5 +423,9 @@ public abstract class RMContainerRequestor extends RMCommunicator {
     ContainerRequest newReq = new ContainerRequest(orig.attemptID, orig.capability,
         hosts, orig.racks, orig.priority); 
     return newReq;
+  }
+  
+  public Set<String> getBlacklistedNodes() {
+    return blacklistedNodes;
   }
 }

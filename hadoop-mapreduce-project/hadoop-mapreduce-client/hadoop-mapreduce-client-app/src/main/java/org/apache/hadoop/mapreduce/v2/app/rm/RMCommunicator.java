@@ -20,6 +20,7 @@ package org.apache.hadoop.mapreduce.v2.app.rm;
 
 import java.io.IOException;
 import java.net.InetSocketAddress;
+import java.nio.ByteBuffer;
 import java.security.PrivilegedAction;
 import java.util.Map;
 import java.util.concurrent.ConcurrentLinkedQueue;
@@ -39,7 +40,8 @@ import org.apache.hadoop.mapreduce.v2.app.job.JobStateInternal;
 import org.apache.hadoop.mapreduce.v2.app.job.impl.JobImpl;
 import org.apache.hadoop.mapreduce.v2.jobhistory.JobHistoryUtils;
 import org.apache.hadoop.security.UserGroupInformation;
-import org.apache.hadoop.yarn.api.AMRMProtocol;
+import org.apache.hadoop.service.AbstractService;
+import org.apache.hadoop.yarn.api.ApplicationMasterProtocol;
 import org.apache.hadoop.yarn.api.protocolrecords.FinishApplicationMasterRequest;
 import org.apache.hadoop.yarn.api.protocolrecords.RegisterApplicationMasterRequest;
 import org.apache.hadoop.yarn.api.protocolrecords.RegisterApplicationMasterResponse;
@@ -54,7 +56,6 @@ import org.apache.hadoop.yarn.exceptions.YarnRuntimeException;
 import org.apache.hadoop.yarn.factories.RecordFactory;
 import org.apache.hadoop.yarn.factory.providers.RecordFactoryProvider;
 import org.apache.hadoop.yarn.ipc.YarnRPC;
-import org.apache.hadoop.yarn.service.AbstractService;
 
 /**
  * Registers/unregisters to RM and sends heartbeats to RM.
@@ -69,7 +70,7 @@ public abstract class RMCommunicator extends AbstractService
   protected Thread allocatorThread;
   @SuppressWarnings("rawtypes")
   protected EventHandler eventHandler;
-  protected AMRMProtocol scheduler;
+  protected ApplicationMasterProtocol scheduler;
   private final ClientService clientService;
   protected int lastResponseID;
   private Resource maxContainerCapability;
@@ -154,12 +155,20 @@ public abstract class RMCommunicator extends AbstractService
       maxContainerCapability = response.getMaximumResourceCapability();
       this.context.getClusterInfo().setMaxContainerCapability(
           maxContainerCapability);
+      if (UserGroupInformation.isSecurityEnabled()) {
+        setClientToAMToken(response.getClientToAMTokenMasterKey());        
+      }
       this.applicationACLs = response.getApplicationACLs();
       LOG.info("maxContainerCapability: " + maxContainerCapability.getMemory());
     } catch (Exception are) {
       LOG.error("Exception while registering", are);
       throw new YarnRuntimeException(are);
     }
+  }
+
+  private void setClientToAMToken(ByteBuffer clientToAMTokenMasterKey) {
+    byte[] key = clientToAMTokenMasterKey.array();
+    context.getClientToAMTokenSecretManager().setMasterKey(key);
   }
 
   protected void unregister() {
@@ -188,7 +197,7 @@ public abstract class RMCommunicator extends AbstractService
       FinishApplicationMasterRequest request =
           recordFactory.newRecordInstance(FinishApplicationMasterRequest.class);
       request.setAppAttemptId(this.applicationAttemptId);
-      request.setFinishApplicationStatus(finishState);
+      request.setFinalApplicationStatus(finishState);
       request.setDiagnostics(sb.toString());
       request.setTrackingUrl(historyUrl);
       scheduler.finishApplicationMaster(request);
@@ -254,7 +263,7 @@ public abstract class RMCommunicator extends AbstractService
     allocatorThread.start();
   }
 
-  protected AMRMProtocol createSchedulerProxy() {
+  protected ApplicationMasterProtocol createSchedulerProxy() {
     final Configuration conf = getConfig();
     final YarnRPC rpc = YarnRPC.create(conf);
     final InetSocketAddress serviceAddr = conf.getSocketAddr(
@@ -270,10 +279,10 @@ public abstract class RMCommunicator extends AbstractService
     }
 
     // CurrentUser should already have AMToken loaded.
-    return currentUser.doAs(new PrivilegedAction<AMRMProtocol>() {
+    return currentUser.doAs(new PrivilegedAction<ApplicationMasterProtocol>() {
       @Override
-      public AMRMProtocol run() {
-        return (AMRMProtocol) rpc.getProxy(AMRMProtocol.class,
+      public ApplicationMasterProtocol run() {
+        return (ApplicationMasterProtocol) rpc.getProxy(ApplicationMasterProtocol.class,
             serviceAddr, conf);
       }
     });

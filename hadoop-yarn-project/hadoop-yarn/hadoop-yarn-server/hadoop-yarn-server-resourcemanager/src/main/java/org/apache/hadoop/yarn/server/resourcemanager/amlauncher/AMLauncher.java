@@ -24,9 +24,6 @@ import java.nio.ByteBuffer;
 import java.security.PrivilegedAction;
 import java.util.Map;
 
-import javax.crypto.SecretKey;
-
-import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.hadoop.conf.Configuration;
@@ -38,7 +35,7 @@ import org.apache.hadoop.security.UserGroupInformation;
 import org.apache.hadoop.security.token.Token;
 import org.apache.hadoop.util.StringUtils;
 import org.apache.hadoop.yarn.api.ApplicationConstants;
-import org.apache.hadoop.yarn.api.ContainerManager;
+import org.apache.hadoop.yarn.api.ContainerManagementProtocol;
 import org.apache.hadoop.yarn.api.protocolrecords.StartContainerRequest;
 import org.apache.hadoop.yarn.api.protocolrecords.StopContainerRequest;
 import org.apache.hadoop.yarn.api.records.ApplicationId;
@@ -52,14 +49,14 @@ import org.apache.hadoop.yarn.exceptions.YarnException;
 import org.apache.hadoop.yarn.factories.RecordFactory;
 import org.apache.hadoop.yarn.factory.providers.RecordFactoryProvider;
 import org.apache.hadoop.yarn.ipc.YarnRPC;
-import org.apache.hadoop.yarn.security.ApplicationTokenIdentifier;
+import org.apache.hadoop.yarn.security.AMRMTokenIdentifier;
 import org.apache.hadoop.yarn.security.ContainerTokenIdentifier;
 import org.apache.hadoop.yarn.server.resourcemanager.RMContext;
 import org.apache.hadoop.yarn.server.resourcemanager.rmapp.attempt.RMAppAttempt;
 import org.apache.hadoop.yarn.server.resourcemanager.rmapp.attempt.RMAppAttemptEvent;
 import org.apache.hadoop.yarn.server.resourcemanager.rmapp.attempt.RMAppAttemptEventType;
 import org.apache.hadoop.yarn.server.resourcemanager.rmapp.attempt.event.RMAppAttemptLaunchFailedEvent;
-import org.apache.hadoop.yarn.util.ProtoUtils;
+import org.apache.hadoop.yarn.util.ConverterUtils;
 
 /**
  * The launch of the AM itself.
@@ -68,7 +65,7 @@ public class AMLauncher implements Runnable {
 
   private static final Log LOG = LogFactory.getLog(AMLauncher.class);
 
-  private ContainerManager containerMgrProxy;
+  private ContainerManagementProtocol containerMgrProxy;
 
   private final RMAppAttempt application;
   private final Configuration conf;
@@ -125,7 +122,7 @@ public class AMLauncher implements Runnable {
   }
 
   // Protected. For tests.
-  protected ContainerManager getContainerMgrProxy(
+  protected ContainerManagementProtocol getContainerMgrProxy(
       final ContainerId containerId) {
 
     final NodeId node = masterContainer.getNodeId();
@@ -138,14 +135,14 @@ public class AMLauncher implements Runnable {
         .createRemoteUser(containerId.toString());
     if (UserGroupInformation.isSecurityEnabled()) {
       Token<ContainerTokenIdentifier> token =
-          ProtoUtils.convertFromProtoFormat(masterContainer
+          ConverterUtils.convertFromYarn(masterContainer
               .getContainerToken(), containerManagerBindAddress);
       currentUser.addToken(token);
     }
-    return currentUser.doAs(new PrivilegedAction<ContainerManager>() {
+    return currentUser.doAs(new PrivilegedAction<ContainerManagementProtocol>() {
       @Override
-      public ContainerManager run() {
-        return (ContainerManager) rpc.getProxy(ContainerManager.class,
+      public ContainerManagementProtocol run() {
+        return (ContainerManagementProtocol) rpc.getProxy(ContainerManagementProtocol.class,
             containerManagerBindAddress, conf);
       }
     });
@@ -165,12 +162,12 @@ public class AMLauncher implements Runnable {
             new String[0])));
     
     // Finalize the container
-    setupTokensAndEnv(container, containerID);
+    setupTokens(container, containerID);
     
     return container;
   }
 
-  private void setupTokensAndEnv(
+  private void setupTokens(
       ContainerLaunchContext container, ContainerId containerID)
       throws IOException {
     Map<String, String> environment = container.getEnvironment();
@@ -201,24 +198,15 @@ public class AMLauncher implements Runnable {
       }
 
       // Add application token
-      Token<ApplicationTokenIdentifier> applicationToken =
-          application.getApplicationToken();
-      if(applicationToken != null) {
-        credentials.addToken(applicationToken.getService(), applicationToken);
+      Token<AMRMTokenIdentifier> amrmToken =
+          application.getAMRMToken();
+      if(amrmToken != null) {
+        credentials.addToken(amrmToken.getService(), amrmToken);
       }
       DataOutputBuffer dob = new DataOutputBuffer();
       credentials.writeTokenStorageToStream(dob);
       container.setTokens(ByteBuffer.wrap(dob.getData(), 0,
         dob.getLength()));
-
-      SecretKey clientSecretKey =
-          this.rmContext.getClientToAMTokenSecretManager().getMasterKey(
-            application.getAppAttemptId());
-      String encoded =
-          Base64.encodeBase64URLSafeString(clientSecretKey.getEncoded());
-      environment.put(
-          ApplicationConstants.APPLICATION_CLIENT_SECRET_ENV_NAME, 
-          encoded);
     }
   }
   
