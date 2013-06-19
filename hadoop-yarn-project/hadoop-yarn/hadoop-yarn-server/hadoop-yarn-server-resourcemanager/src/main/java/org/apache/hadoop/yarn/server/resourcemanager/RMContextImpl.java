@@ -25,6 +25,7 @@ import org.apache.hadoop.yarn.api.records.ApplicationId;
 import org.apache.hadoop.yarn.api.records.NodeId;
 import org.apache.hadoop.yarn.conf.YarnConfiguration;
 import org.apache.hadoop.yarn.event.Dispatcher;
+import org.apache.hadoop.yarn.server.resourcemanager.history.RMHistoryStore;
 import org.apache.hadoop.yarn.server.resourcemanager.recovery.NullRMStateStore;
 import org.apache.hadoop.yarn.server.resourcemanager.recovery.RMStateStore;
 import org.apache.hadoop.yarn.server.resourcemanager.rmapp.RMApp;
@@ -55,6 +56,8 @@ public class RMContextImpl implements RMContext {
   private AMLivelinessMonitor amLivelinessMonitor;
   private AMLivelinessMonitor amFinishingMonitor;
   private RMStateStore stateStore = null;
+  private RMHistoryStore historyStore = null;
+  
   private ContainerAllocationExpirer containerAllocationExpirer;
   private final DelegationTokenRenewer tokenRenewer;
   private final AMRMTokenSecretManager appTokenSecretManager;
@@ -64,6 +67,7 @@ public class RMContextImpl implements RMContext {
 
   public RMContextImpl(Dispatcher rmDispatcher,
       RMStateStore store,
+      RMHistoryStore historyStore,
       ContainerAllocationExpirer containerAllocationExpirer,
       AMLivelinessMonitor amLivelinessMonitor,
       AMLivelinessMonitor amFinishingMonitor,
@@ -74,6 +78,7 @@ public class RMContextImpl implements RMContext {
       ClientToAMTokenSecretManagerInRM clientToAMTokenSecretManager) {
     this.rmDispatcher = rmDispatcher;
     this.stateStore = store;
+    this.historyStore = historyStore;
     this.containerAllocationExpirer = containerAllocationExpirer;
     this.amLivelinessMonitor = amLivelinessMonitor;
     this.amFinishingMonitor = amFinishingMonitor;
@@ -95,7 +100,8 @@ public class RMContextImpl implements RMContext {
       RMContainerTokenSecretManager containerTokenSecretManager,
       NMTokenSecretManagerInRM nmTokenSecretManager,
       ClientToAMTokenSecretManagerInRM clientToAMTokenSecretManager) {
-    this(rmDispatcher, null, containerAllocationExpirer, amLivelinessMonitor, 
+    this(rmDispatcher, null, null,
+          containerAllocationExpirer, amLivelinessMonitor,
           amFinishingMonitor, tokenRenewer, appTokenSecretManager, 
           containerTokenSecretManager, nmTokenSecretManager,
           clientToAMTokenSecretManager);
@@ -119,6 +125,11 @@ public class RMContextImpl implements RMContext {
     return stateStore;
   }
 
+  @Override
+  public RMHistoryStore getHistoryStore() {
+    return historyStore;
+  }
+  
   @Override
   public ConcurrentMap<ApplicationId, RMApp> getRMApps() {
     return this.applications;
