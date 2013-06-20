@@ -745,6 +745,14 @@ public class YarnConfiguration extends Configuration {
       YARN_PREFIX + "client.max-nodemanagers-proxies";
   public static final int DEFAULT_NM_CLIENT_MAX_NM_PROXIES = 500;
   
+  /** The class to use as the persistent store for RM history.*/
+  public static final String RM_HISTORY_PREFIX = RM_PREFIX + "history-store.";
+  public static final String RM_HISTORY_STORE = RM_HISTORY_PREFIX + "class";
+
+  public static final String APPLICATION_WORKFLOW_CONTEXT = "APPLICATION_WORKFLOW_CONTEXT";
+  public static final String APPLICATION_INFO = "APPLICATION_INFO";
+
+
   public YarnConfiguration() {
     super();
   }
