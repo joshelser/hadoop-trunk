@@ -158,6 +158,11 @@ Release 2.1.0-beta - UNRELEASED
     YARN-694. Starting to use NMTokens to authenticate all communication with
     NodeManagers. (Omkar Vinit Joshi via vinodkv) 
 
+    YARN-553. Replaced YarnClient.getNewApplication with
+    YarnClient.createApplication which provides a directly usable
+    ApplicationSubmissionContext to simplify the api. (Karthik Kambatla via
+    acmurthy) 
+
   NEW FEATURES
 
     YARN-482. FS: Extend SchedulingMode to intermediate queues. 
@@ -575,6 +580,9 @@ Release 2.1.0-beta - UNRELEASED
     YARN-848. Nodemanager does not register with RM using the fully qualified
     hostname. (Hitesh Shah via sseth)
 
+    YARN-854. Fixing YARN bugs that are failing applications in secure
+    environment. (Omkar Vinit Joshi via vinodkv)
+
   BREAKDOWN OF HADOOP-8562 SUBTASKS AND RELATED JIRAS
 
     YARN-158. Yarn creating package-info.java must not depend on sh.
@@ -627,6 +635,12 @@ Release 2.1.0-beta - UNRELEASED
 
     YARN-839. TestContainerLaunch.testContainerEnvVariables fails on Windows.
     (Chuan Liu via cnauroth)
+
+    YARN-597. TestFSDownload fails on Windows due to dependencies on
+    tar/gzip/jar tools. (Ivan Mitic via acmurthy) 
+
+    YARN-852. TestAggregatedLogFormat.testContainerLogsFileAccess fails on
+    Windows. (Chuan Liu via cnauroth)
 
     YARN-795. Fair scheduler queue metrics should subtract allocated vCores from 
     available vCores. (ywskycn via tucu) 
