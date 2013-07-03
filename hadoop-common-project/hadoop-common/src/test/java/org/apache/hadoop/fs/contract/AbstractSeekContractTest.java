@@ -42,7 +42,6 @@ public abstract class AbstractSeekContractTest extends AbstractFSContractTestBas
   private Path smallSeekFile;
   private Path zeroByteFile;
   private FSDataInputStream instream;
-  static final int SWIFT_TEST_TIMEOUT = 0;
 
   @Override
   public void setup() throws Exception {
@@ -82,8 +81,7 @@ public abstract class AbstractSeekContractTest extends AbstractFSContractTestBas
     assertMinusOne("post-seek buffer read", result);
   }
 
-
-  @Test(timeout = SWIFT_TEST_TIMEOUT)
+  @Test
   public void testBlockReadZeroByteFile() throws Throwable {
     instream = getFileSystem().open(zeroByteFile);
     assertEquals(0, instream.getPos());
@@ -93,7 +91,7 @@ public abstract class AbstractSeekContractTest extends AbstractFSContractTestBas
     assertMinusOne("block read zero byte file", result);
   }
 
-  @Test(timeout = SWIFT_TEST_TIMEOUT)
+  @Test
   public void testSeekReadClosedFile() throws Throwable {
     instream = getFileSystem().open(smallSeekFile);
     instream.close();
@@ -118,7 +116,7 @@ public abstract class AbstractSeekContractTest extends AbstractFSContractTestBas
     }
   }
 
-  @Test(timeout = SWIFT_TEST_TIMEOUT)
+  @Test
   public void testNegativeSeek() throws Throwable {
     instream = getFileSystem().open(smallSeekFile);
     assertEquals(0, instream.getPos());
@@ -135,7 +133,7 @@ public abstract class AbstractSeekContractTest extends AbstractFSContractTestBas
     assertEquals(0, instream.getPos());
   }
 
-  @Test(timeout = SWIFT_TEST_TIMEOUT)
+  @Test
   public void testSeekFile() throws Throwable {
     instream = getFileSystem().open(smallSeekFile);
     assertEquals(0, instream.getPos());
@@ -154,7 +152,7 @@ public abstract class AbstractSeekContractTest extends AbstractFSContractTestBas
     assertEquals(63, instream.read());
   }
 
-  @Test(timeout = SWIFT_TEST_TIMEOUT)
+  @Test
   public void testSeekAndReadPastEndOfFile() throws Throwable {
     instream = getFileSystem().open(smallSeekFile);
     assertEquals(0, instream.getPos());
@@ -166,7 +164,7 @@ public abstract class AbstractSeekContractTest extends AbstractFSContractTestBas
     assertMinusOne("read past end of file", instream.read());
   }
 
-  @Test(timeout = SWIFT_TEST_TIMEOUT)
+  @Test
   public void testSeekAndPastEndOfFileThenReseekAndRead() throws Throwable {
     instream = getFileSystem().open(smallSeekFile);
     //go just before the end. This may or may not fail; it may be delayed until the
@@ -182,7 +180,7 @@ public abstract class AbstractSeekContractTest extends AbstractFSContractTestBas
     assertTrue("Premature EOF", instream.read() != -1);
   }
 
-  @Test(timeout = SWIFT_TEST_TIMEOUT)
+  @Test
   public void testSeekBigFile() throws Throwable {
     Path testSeekFile = new Path(testPath, "bigseekfile.txt");
     byte[] block = dataset(65536, 0, 255);
@@ -207,7 +205,7 @@ public abstract class AbstractSeekContractTest extends AbstractFSContractTestBas
     assertEquals("@0", 0, (byte) instream.read());
   }
 
-  @Test(timeout = SWIFT_TEST_TIMEOUT)
+  @Test
   public void testPositionedBulkReadDoesntChangePosition() throws Throwable {
     Path testSeekFile = new Path(testPath, "bigseekfile.txt");
     byte[] block = dataset(65536, 0, 255);
