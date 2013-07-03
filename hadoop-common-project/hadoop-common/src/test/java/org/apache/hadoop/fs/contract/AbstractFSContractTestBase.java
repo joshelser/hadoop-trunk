@@ -1,0 +1,217 @@
+/*
+ * Licensed to the Apache Software Foundation (ASF) under one
+ *  or more contributor license agreements.  See the NOTICE file
+ *  distributed with this work for additional information
+ *  regarding copyright ownership.  The ASF licenses this file
+ *  to you under the Apache License, Version 2.0 (the
+ *  "License"); you may not use this file except in compliance
+ *  with the License.  You may obtain a copy of the License at
+ *
+ *       http://www.apache.org/licenses/LICENSE-2.0
+ *
+ *  Unless required by applicable law or agreed to in writing, software
+ *  distributed under the License is distributed on an "AS IS" BASIS,
+ *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *  See the License for the specific language governing permissions and
+ *  limitations under the License.
+ */
+
+package org.apache.hadoop.fs.contract;
+
+import org.apache.hadoop.conf.Configuration;
+import org.apache.hadoop.fs.FileStatus;
+import org.apache.hadoop.fs.FileSystem;
+import org.apache.hadoop.fs.Path;
+import org.junit.After;
+import org.junit.Assert;
+import org.junit.Assume;
+import org.junit.Before;
+
+import static org.apache.hadoop.fs.contract.ContractTestUtils.*;
+
+import java.io.IOException;
+
+public abstract class AbstractFSContractTestBase extends Assert
+  implements ContractOptions {
+
+  /**
+   * The FS contract used for these tets
+   */
+  private AbstractFSContract contract;
+
+  /**
+   * The test filesystem extracted from it
+   */
+  private FileSystem fileSystem;
+  
+  /**
+   * This must be implemented by all instantiated test cases
+   * -provide the FS contract
+   * @return the FS contract
+   */
+  protected abstract AbstractFSContract createContract(Configuration conf);
+
+  /**
+   * Get the contract
+   * @return the contract, which will be non-null once the setup operation has
+   * succeeded
+   */
+  protected AbstractFSContract getContract() {
+    return contract;
+  }
+
+  public FileSystem getFileSystem() {
+    return fileSystem;
+  }
+
+  protected FileSystem getTestFileSystem() throws IOException {
+    return contract.getTestFileSystem();
+  }
+
+  protected void skipIfUnsupported(String feature) throws IOException {
+    if (!contract.isSupported(feature, false)) {
+      skip("Skipping as unsupported feature: " + feature);
+    }
+  }
+
+  /**
+   * Include at the start of tests to skip them if the FS is not enabled.
+   */
+  protected void assumeEnabled() {
+    Assume.assumeTrue(contract.isEnabled());
+  }
+
+
+  /**
+   * Create a configuration. May be overridden by tests/instantiations
+   * @return a configuration
+   */
+  protected Configuration createConfiguration() {
+    return new Configuration();
+  }
+
+  /**
+   * Setup: create the contract then init it
+   * @throws Exception on any failure
+   */
+  @Before
+  public void setup() throws Exception {
+    contract = createContract(createConfiguration());
+    contract.init();
+    //skip tests if they aren't enabled
+    assumeEnabled();
+    //extract the test FS
+    fileSystem = contract.getTestFileSystem();
+    assertNotNull("null filesystem", fileSystem);
+  }
+
+  /**
+   * Teardown
+   * @throws Exception on any failure
+   */
+  @After
+  public void teardown() throws Exception {
+
+  }
+
+  /**
+   * Create a path under the test path provided by
+   * the FS contract
+   * @param filepath path string in
+   * @return a path qualified by the test filesystem
+   * @throws IOException IO problems
+   */
+  protected Path path(String filepath) throws IOException {
+    return getFileSystem().makeQualified(
+      new Path(
+        getContract().getTestPath(),
+        filepath));
+  }
+  
+  /**
+   * Take a simple path like "/something" and turn it into
+   * a qualified path against the test FS
+   * @param filepath path string in
+   * @return a path qualified by the test filesystem
+   * @throws IOException IO problems
+   */
+  protected Path absolutepath(String filepath) throws IOException {
+    return getFileSystem().makeQualified(new Path(filepath));
+  }
+
+  /**
+   * List a path in the test FS
+   * @param path path to list
+   * @return the contents of the path/dir
+   * @throws IOException IO problems
+   */
+  protected String ls(Path path) throws IOException {
+    return ContractTestUtils.ls(fileSystem, path);
+  }
+
+  /**
+   * assert that a path exists
+   * @param message message to use in an assertion
+   * @param path path to probe
+   * @throws IOException IO problems
+   */
+  public void assertPathExists(String message, Path path) throws IOException {
+    ContractTestUtils.assertPathExists(fileSystem, message, path);
+  }
+
+  /**
+   * assert that a path does not
+   * @param message message to use in an assertion
+   * @param path path to probe
+   * @throws IOException IO problems
+   */
+  public void assertPathDoesNotExist(String message, Path path) throws
+                                                                IOException {
+    ContractTestUtils.assertPathDoesNotExist(fileSystem, message, path);
+  }
+
+  /**
+   * Assert that a file exists and whose {@link FileStatus} entry
+   * declares that this is a file and not a symlink or directory.
+   *
+   * @param filename name of the file
+   * @throws IOException IO problems during file operations
+   */
+  protected void assertIsFile(Path filename) throws IOException {
+    ContractTestUtils.assertIsFile(fileSystem, filename);
+  }
+
+  /**
+   * Assert that a file exists and whose {@link FileStatus} entry
+   * declares that this is a file and not a symlink or directory.
+   *
+   * @param path name of the file
+   * @throws IOException IO problems during file operations
+   */
+  protected void assertIsDirectory(Path path) throws IOException {
+    ContractTestUtils.assertIsDirectory(fileSystem, path);
+  }
+
+  
+  /**
+   * Assert that a file exists and whose {@link FileStatus} entry
+   * declares that this is a file and not a symlink or directory.
+   *
+   * @throws IOException IO problems during file operations
+   */
+  protected void mkdirs(Path path) throws IOException {
+    assertTrue("Failed to mkdir" + path, fileSystem.mkdirs(path));
+  }
+
+  /**
+   * Assert that a delete succeeded
+   * @param path path to delete
+   * @param recursive recursive flag
+   * @throws IOException IO problems
+   */
+  protected void assertDeleted(Path path, boolean recursive) throws
+                                                             IOException {
+    ContractTestUtils.assertDeleted(fileSystem, path, recursive);
+  }
+
+}
