@@ -16,44 +16,324 @@
   ---
   ${maven.build.timestamp}
 
-Hadoop FileSystem Specification
+Apache Hadoop FileSystem Specification
 
-%{toc|section=1|fromDepth=0}
+~~ %{toc|section=1|fromDepth=0}
 
 * {Introduction}
 
-  This document defines the requirements of FileSystem Interfaces and methods.
+  This document defines the expected behaviors of a Hadoop-compatible filesystem,
+  including many that aren't (or can't be) explicitly tested -yet.
+  
+  Most of the Hadoop operations are tested against HDFS in the Hadoop test
+  suites, usually throogh <<<MiniDFSCluster>>>. Before a version of Apache Hadoop
+  is lreased
+   is used so ubiquitously. HDFS's actions have
+  been modeled closely on the POSIX Filesystem behavior -using the actions and
+  return codes of Unix filesystem actions as a reference.
+  
+  What is not so rigorously tested is how well other filesystems accessible from
+  Hadoop behave. the bundled S3 filesystem makes Amazon's S3 blobstore accessible
+  through the FileSystem API. The Swift filesystem driver provides similar
+  functionality for the OpenStack Swift blobstore. The Azure object storage
+  filesystem in branch-1-win talks to Microsoft's Azure equivalent. All of these
+  bind to blobstores, which do have different behaviours, especially regarding
+  consistency guarantees, and atomicity of operations.
+  
+  The Local filesystem provides access to the underlying filesystem of the
+  platform -its behaviour is defined by the operating system -and again, can
+  behave differently from HDFS.
+  
+  Finally, there are filesystems implemented by third parties, that assert
+  compatibility with Apache Hadoop. There is no formal compatibility suite, and
+  hence no way for anyone to declare compatibility except in the form of their
+  own compatibility tests.
+  
+  This document does not attempt to formally define compatibility; passing the
+  associated test suites does not guarantee correct behavior in MapReduce jobs,
+  or HBase operations.
+  
+  What the test suites do define is the expected set of actions -failing these
+  tests will highlight potential issues.
+  
+** Naming
 
-* Definitions
+  This document follows RFC2119 rules regarding the use of MUST, MUST NOT, MAY,
+  and SHALL -and MUST NOT be treated as normative.
+  
+  
+* Assumptions contained by users of the Hadoop FileSystem APIs
+ 
+  The original <FileSystem> class and its usages are based on a set of
+  assumptions "so obvious that nobody wrote them down" -primarily that HDFS is
+  the underlying filesystem, and that it offers a subset of the behavior of a
+  Posix filesystem
+    
+    * It's a hierarchical directory structure with files and directories.
+    
+    * Files contain data -possibly 0 bytes worth.
+    
+    * You cannot put files or directories under a file
+    
+    * Directories contain 0 or more files
+    
+    * A directory entry has no data itself
+    
+    * You can write arbitrary binary data to a file -and when that file's contents
+     are read in, from anywhere in or out the cluster -that data is returned.
+    
+    * You can store many GB of data in a single file.
+    
+    * The root directory, <<<"/">>>, always exists, and cannot be renamed. It is always a
+      directory, and cannot be overwritten by a file write operation. An attempt to
+      recursively delete the root directory will delete its contents (assuming
+      permissions allow this), but will retain the root path itself.
+    
+    * You cannot rename/move a directory under itself.
+    
+    * You cannot rename/move a directory atop any existing file other than the
+      source file itself.
+    
+    * Security: If you don't have the permissions for an operation, it will fail
+      with some kind of error.
+
+** Path Names
+  
+    * A path is comprised of path components separated by <<<'/'>>>.
+    
+    * Paths are compared based on unicode code-points. 
+    
+    * Case-insensitive and locale-specific comparisons MUST NOT not be used.
+    
+    * A path component is unicode string of 1 or more characters.
+    
+    * Path components MUST NOT include the characters <<<":">>> or <<<"/">>>.
+    
+    * Path components MUST NOT include characters of ASCII/UTF-8 value 0-31 .
+    
+    * Path components MUST NOT be <<<".">>>  or <<<"..">>> 
+    
+    * Note also that the Azure blob store documents say that paths SHOULD NOT use
+     a trailing <<<".">>> (as their .NET URI class strips it).
+
+** Security Assumptions
+
+  Except in the special section on security, this document assumes the client has
+  full access to the filesystem. Accordingly, the majority of items in the list
+  do not add the qualification "assuming the user has the rights to perform the
+  operation with the supplied parameters and paths"
+  
+  The failure modes when a user lacks security permissions are not specified.
+
+** Networking Assumptions
+  
+  This document assumes this all network operations succeed -all statements
+  can be assumed to be qualified as <"assuming the operation does not fail due
+  to a network availability problem">
+  
+  * The final state of a filesystem after a network failure is undefined.
+  
+  * The immediate consistency state of a filesystem after a network failure is undefined.
+  
+  * If a network failure can be reported to the client, the failure MUST be an
+    instance of `<<<IOException>>>`
+  
+  * The exception details SHOULD include diagnostics suitable for an experienced
+    Java developer _or_ operations team to begin diagnostics. For example: source
+    and destination hostnames and ports on a `ConnectionRefused` exception.
+  
+  * The exception details MAY include diagnostics suitable for inexperienced
+    developers to begin diagnostics. For example Hadoop tries to include a
+    reference to {{{http://wiki.apache.org/hadoop/ConnectionRefused}}} when a TCP
+    connection request is refused.
+
+* Core requirements of a Hadoop Compatible Filesystem
+
+  Here is the what a filesystem is expected to do. Some filesystems do not
+  meet all these requirements. As a result, some programs may not work as
+  expected. 
+
+** Atomicity
+
+  * Rename of a file MUST be atomic.
+  
+  * Rename of a directory SHOULD be atomic. Blobstore filesystems MAY offer
+  non-atomic directory renaming.
+  
+  * Delete of a file MUST be atomic.
+  
+  * Delete of an empty directory MUST be atomic.
+  
+  * Recursive directory deletion MAY be atomic. Although HDFS offers atomic
+  recursive directory deletion, none of the other FileSystems that Hadoop supports
+  offers such a guarantee -including the local filesystems.
+  
+  * `<<<mkdir()>>>` SHOULD be atomic.
+  
+  * `<<<mkdirs()>>>` MAY be atomic. [It is *currently* atomic on HDFS, but this is not
+  the case for most other filesystems -and cannot be guaranteed for future
+  versions of HDFS]
+  
+  * If `<<<append()>>>` is implemented, each individual `<<<append()>>>` 
+  operation SHOULD be atomic.
+  
+  * `<<<FileSystem.listStatus()>>>` does contain any guarantees of atomicity,
+    though some uses in the MapReduce codebase (such as `<<<FileOutputCommitter>>>`) do
+    assume that the listed directories do not get deleted between listing their
+    status and recursive actions on the listed entries.
+
+** Consistency
+
+  The consistency model of a Hadoop filesystem is <one-copy-update-semantics>;
+  that generally that of a traditional Posix filesystem. (Note that NFS relaxes
+  some constraints about how fast changes propagate)
+  
+  * Create: once the `<<<close()>>>` operation on an output stream writing a newly
+  created file has completed, in-cluster operations querying the file metadata
+  and contents MUST immediately see the file and its data.
+  
+  *  Update: Once  the `<<<close()>>>`  operation on  an output  stream writing  a newly
+  created file  has completed,  in-cluster operations  querying the  file metadata
+  and contents MUST immediately see the new data.
+  
+  *  Delete:   once  a  `<<<delete()>>>`   operation  is   on  a  file   has  completed,
+  it MUST NOT be visible or accessible. Specifically
+  `<<<listStatus()>>>`, `<<<open()>>>`,`<<<rename()>>>` and `<<<append()>>>`
+   operations MUST fail.
+  
+  * When file is deleted then a new file of the same name created, the new file
+   MUST be immediately visible.
+   
+  * Rename: after a <<<rename()>>>  has completed, operations against the new  path MUST
+  succeed; operations against the old path MUST fail.
+  
+  * The consistency semantics out of cluster  MUST be the same as that in-cluster:
+  All clients querying a file that is not being actively manipulated MUST see the
+  same metadata and data irrespective of their location in or out of the cluster.
+
+** Concurrency
+
+  * The data added to a file during a write or append MAY be visible while the
+    write operation is in progress.
+  
+  * If a client opens a file for a <<<read()>>>` operation while another `<<<read()>>>`
+    operation is in progress, the second operation MUST succeed. Both clients
+    MUST have a consistent view of the same data.
+  
+  * If a file is deleted while a `<<<read()>>>` operation is in progress, the
+    <<<`delete()`>>> operation SHOULD complete successfully. Implementations MAY cause
+    <<<`delete()`>>> to fail with an `IOException` instead.
+   
+  * If a file is deleted while a `<<<read()>>>` operation is in progress, the <<<read()>>>
+    operation MAY complete successfully. Implementations MAY cause <<<read()>>>
+    operations to fail with an `IOException` instead.
+  
+  * Multiple writers MAY open a file for writing. If this occurs, the outcome
+  is undefined
+  
+  * Undefined: action of `<<<delete()>>>` while a write or append operation is in
+    progress
+
+** Undefined limits
+
+  Here are some limits to filesystem capacity that have never been explicitly
+  defined.
+  
+    [[1]] The maximum # of files in a directory.
+    
+    [[1]] Max # of directories in a directory
+    
+    [[1]] Maximum total number of entries (files and directories) in a filesystem.
+    
+    [[1]] Max length of a filename (HDFS: 8000)
+    
+    [[1]] <<<`MAX_PATH`>>> - the total length of the entire directory tree referencing a
+    file. Blobstores tend to stop at ~1024 characters
+    
+    [[1]] max depth of a path (HDFS: 1000 directories)
+    
+    [[1]] The maximum size of a single file
+
+** Undefined timeouts
+
+  Timeouts for operations are not defined at all, including:
+  
+    * The maximum completion time of blocking FS operations.
+    MAPREDUCE-972 shows how <<<distcp>>> broke on slow s3 renames.
+    
+    * The timeout for idle read streams before they are closed.
+    
+    * The timeout for idle write streams before they are closed.
+  
+  The blocking-operation timeout is in fact variable in HDFS, as sites and
+  clients may tune the retry parameters so as to convert filesystem failures and
+  failovers into pauses in operation. Instead there is a general assumption that
+  FS operations are "fast but not as fast as local FS operations", and that data
+  reads and writes take a time that scales with the volume of data. This
+  assumption shows a more fundamental one: the filesystem is "close" to the
+  client applications as far as network latency and bandwidth is concerned.
+  
+  There are also some implicit assumptions about the overhead of some operations
+
+    [[1]] `<<<seek()>>>` operations are fast and incur little or no network delays. [This 
+    does not hold on blob stores]
+    
+    [[1]] Directory list operations are fast for directories with few entries.
+    
+    [[1]] Directory list operations are fast for directories with few entries, but may
+    incur a cost that is O(no. of entries). Hadoop 2 added iterative listing to
+    handle the challenge of listing directories with millions of entries without
+    buffering.
+    
+    [[1]] A `<<<close()>>>` of an `<<<OutputStream>>>` is fast, irrespective of whether or not
+    the file operation has succeeded or not.
+    
+    [[1]] The time to delete a directory is independent of the size of the number of 
+    child entries
+
+  Different filesystems not only have different behavior, under excess load or failure
+  conditions a filesystem may behave very differently. 
+
+** Definitions
 
   <iff> is shorthand for <if and only if>
 
-  <length(F: Path): Int> is a function which returns the length of a File, F
+  <<<length(F: Path): Int>>> is a function which returns the length of a File, F
 
-  <exists(F: Path): boolean> is a function which returns <<<true>>> iff
+  <<<exists(F: Path): boolean>>> is a function which returns <<<true>>> iff
   the path resolves to an file, directory or other entity within the filesystem.
 
-  <isDir(F: Path): boolean> is a function which returns <<<true>>> iff
-  <exists(F)> and F represents a directory.
+  <<<isDir(F: Path): boolean>>> is a function which returns <<<true>>> iff
+  <<<exists(F)>>> and F represents a directory.
 
-  <isFile(F: Path): boolean > is a function which returns <<<true>>> iff
-  <exists(F)> and F represents a file.
+  <<<isFile(F: Path): boolean>>> is a function which returns <<<true>>> iff
+  <<<exists(F)>>> and F represents a file.
 
-  <isSymLink(F: Path): boolean > is a function which returns <<<true>>> iff
-  <exists(F)> and F represents a symbolic link.
+  <<<isSymLink(F: Path): boolean>>> is a function which returns <<<true>>> iff
+  <<<exists(F)>>> and F represents a symbolic link.
+  
+  <<<isRoot(F: Path): boolean>>> is a function which returns <<<true>>> iff
+  F is the root directory of a filesystem.
+  
+  <<<isAncestor(P1: Path, P2: Path): boolean>>> is a function which returns
+   <<<true>>> iff P1 is a parent or ancestor of P2 in the file hierarchy
+   -irrespective of whether or not either path exists
 
-  <pos(S: Stream): int> is a function which returns the position of an
+  <<<pos(S: Stream): int>>> is a function which returns the position of an
   input stream reading a file.
 
-  <min(X: T, Y:T)>: T is a function which returns the smallest of <(X,Y)>.
-
+  <<<min(X: T, Y:T):T >>> is a function which returns the smallest of <(X,Y)> 
+  for a type in the set <<<(integer, long)>>>
+  
+  <<<parent(P: Path): Path)>>> is a function that returns the parent of a path
+  
 
 * Foundational: Operations and failures
 
     * All operations MUST eventually complete, successfully or unsuccessfully,
       throw an <<<IOException>>> or subclass thereof.
 
-    ** The time to complete an operation is undefined and may depend on
+    * The time to complete an operation is undefined and may depend on
     the implementation and on the state of the system.
 
     * Operations MAY throw a <<<RuntimeException>>> or subclass thereof.
@@ -71,66 +351,135 @@ Hadoop FileSystem Specification
 
     * If an operation is not implemented in a class, the implementation must
     throw an <<<UnsupportedOperationException>>>
+    
+* File Operations
+    
+** rename(Path src,Path dest) INCOMPLETE
 
-* Invariants
+  * The parent directories of a the destination file/directory MUST exist for
+  the rename to succeed.
+  
+  * <<<`rename(P, P)>>>` MUST return true if `<<<isFile(P)>>>` but MUST be a no-op:
+  the file and its attributes are not updated.
+  
+  * `<<<rename(P, P)>>>` MUST be a no-op if `<<<isDirectory(self)>>>`.
+    The return value is undefined.
+    For reference, HDFS returns true. <This is a
+    departure from the behavior of Posix, which requires the operation to
+    return a non-zero status code.>
+  
+  * <<<`rename(Path, Path2)`>>> MUST fail if <<<`!exists(Path)`>>>
+
+  * <<<`rename(Path, Path2)`>>> MUST fail if
+   <<<`!exists(parent(Path2)) && !isRoot(Path2)>>>
+  
+  * <<<`rename(Path, Path2)>>>` MUST fail if <<<isAncestor(Path, Path2)>>> 
+  
+  * <<<`rename(Path, Path2)>>>` MUST fail if <<<`exists(Path2)`>>> and
+   <<<`isFile(Path2)`>>>.
+
+  * <<<`rename(Path, Path2)>>>` MUST fail if <<<isFile(parent(Path2))>>>
+  
+  * `<<<rename("/", Path)>>>` MUST fail.
+
+
+*** Notes
+
+    * The behavior of `<<<rename()>>>` on an open file is unspecified.
+    
+    * The return code of renaming a directory to itself is unspecified. 
+
+** <<<`delete(Path path, boolean recursive)`>>>
+
+
+    * Deleting an empty directory MUST delete the directory and return `true`,
+irrespective of the value of the recursive flag.
+
+    * Deleting a directory with child elements MUST succeed iff `recursive==true`.
+    
+    * Deleting the root path, `/`, MUST, iff `recursive==true`, delete all entries
+    in the filesystem, excluding the `/` entry itself. That is, `exists("/")`
+    must still be true
+    
+    * If the filesystem is empty, deleting the root path, `/`, MUST succeed and
+      MUST have no effect.
+     
+    * Deleting a non-empty root directory, `/`, MUST return false if `recursive==false`.
+    
+    * Deleting a file is an atomic action.
+    
+    * Deleting an empty directory is atomic.
+    
+    * A recursive delete of a directory tree MAY be atomic.
+    
+    * After a delete operation completes successfully, attempts by clients to open
+      the file, query its attributes, or locate it by enumerating the parent
+      directory will fail. (i.e changes are immediately visible and consistent
+      across all clients)
+
+
+* InputStream, Seekable and PositionedReadable
+
+** Invariants
 
 
   [[1]] After all operations on <<<Seekable>>>, <<<InputStream>>> and
-   <<<PositionedReadable>>>,
-   <length(F)> MUST be unchanged, and the contents of the file <F> must be unchanged.
+   <<<PositionedReadable>>> of a file <F>, 
+   <<<length(F)>>> MUST be unchanged, and the contents of the file <F> must be unchanged.
    Metadata about the file (e.g. the access time) MAY change.
 
-* Concurrency
+** Concurrency
 
-  [[1]] All operations on an InputStream S are assumed to be thread-unsafe.
+  [[1]] All operations on an <<<InputStream>>> <S> are assumed to be thread-unsafe.
 
   [[1]] If the file which is being accessed is changed during a series
   of operations, the outcome is not defined.
 
-* InputStream Prequisites
+** InputStream
 
-  Implementations of <<<InputStream>>> MUST follow the specification of
+  Implementations of <<<InputStream>>> MUST follow the Java specification of
   <<<InputStream>>>. For an <<<InputStream>>> <S> created from
   <<<FileSystem.open(F: Path): InputStream>>>, the following conditions MUST hold
 
-  [[1]] After <<<S.close())>>> all <<<read>>> operations are SHOULD fail with
-  an exception. It MAY NOT, in which case the outcome of all futher operations
-  are undefined.
-
-  [[1]]<<<S.read()>>> where less than <length(F)> bytes have been served.
-  MUST return the next byte of data
-
-  [[1]] <<<S.read()>>> where more than <length(F)> bytes have been served.
-  MUST return -1.
-
-  [[1]] <<<S.read(Buffer, Offset, Len)>>>
-  where <Offset < 0 ||  Offset> > <Buffer.length ||
-  (Len > > <(Buffer.length - Offset)) || Len <0 >
-  MUST throw
-  <<<InvalidArgumentException>>> or another <<RuntimeException>>
-  including -but not limited to- <<<ArrayIndexOutOfBoundsException>>>
-
-  [[1]] <<<S.read(null, int Offset, int Len )>>> MUST throw
-  <<<NullPointerException>>>.
-
-  [[1]] <<<S.read(Buffer, Offset, 0 )>>> MUST return 0 if
-  the preceeding criteria have been met.
-
-  [[1]] <<<S.read(Buffer, Offset, Len)>>>
-  MUST fill <<<Buffer>>> with <min(Len, length(F)-Len)> entries from
-  the input stream defined by <<<S.read()>>>
-  and return the number of bytes written.
-
-  [[1]] <<<S.read(Buffer, Offset, Len)>>>
-  where S has already streamed <length(F)> bytes MUST return -1 and make no changes
-  to the contents of Buffer.
+    [[1]] After <<<S.close())>>> all <<<read>>> operations are SHOULD fail with
+    an exception. It MAY NOT, in which case the outcome of all futher operations
+    are undefined.
+  
+    [[1]]<<<S.read()>>> where less than <<<length(F)>>> bytes have been served.
+    MUST return the next byte of data
+  
+    [[1]] <<<S.read()>>> where more than <<<length(F)>>> bytes have been served.
+    MUST return -1.
+  
+    [[1]] <<<S.read(Buffer, Offset, Len)>>>
+    where <<<Offset < 0 ||  Offset>>> >
+     <<<Buffer.length || (Len >>> >
+      <<<(Buffer.length - Offset)) || Len <0 >>>
+    MUST throw
+    <<<InvalidArgumentException>>> or another <<RuntimeException>>
+    including -but not limited to- <<<ArrayIndexOutOfBoundsException>>>
+  
+    [[1]] <<<S.read(null, int Offset, int Len )>>> MUST throw
+    <<<NullPointerException>>>.
+  
+    [[1]] <<<S.read(Buffer, Offset, 0 )>>> MUST return 0 if
+    the preceeding criteria have been met.
+  
+    [[1]] <<<S.read(Buffer, Offset, Len)>>>
+    MUST fill <<<Buffer>>> with <<<min(Len, length(F)-Len)>>> entries from
+    the input stream defined by <<<S.read()>>>
+    and return the number of bytes written.
+  
+    [[1]] <<<S.read(Buffer, Offset, Len)>>>
+    where S has already streamed <<<length(F)>>> bytes MUST return <<<-1>>>
+    and MUST make no changes to the contents of <<<Buffer>>>.
 
   Notes:
 
-  [[1]] the <<<InputStream>>> definition does not place any limit
-  on how long <<read())>> may take to complete.
+    [[1]] the <<<InputStream>>> definition does not place any limit
+    on how long <<read())>> may take to complete.
 
-* Seekable
+** Seekable
 
   The interface <<<Seekable>>> MAY be implemented by classes that extend
   <<<InputStream>>> and SHOULD NOT be implemented that classes that do not.
@@ -151,77 +500,113 @@ public interface Seekable {
   is true and <<<S.seek()>>> does not throw an <<<UnsupportedOperation>>> exemption,
   the following conditions MUST hold:-
 
-  [[1]] For a newly opened input stream <S>, <<<S.getPos()>>> MUST
-  equal 0.
+    [[1]] For a newly opened input stream <S>, <<<S.getPos()>>> MUST
+    equal 0.
+  
+    [[1]] For all values of <P> in <Long> where <<<S.seek(P)>>> does 
+    throw an exception, the outcomes of <<<S.getPos()>>> and <<<S.read()>>>
+    operations are undefined.
+  
+    [[1]] After <<<S.close()>>>, <<<S.seek(P)>>> MUST fail with an <<<IOException>>>
+  
+    [[1]] For all values of <P1>, <P2> in <Long>,  <<<S.seek(P1)>>> followed
+    by <<<S.seek(P2)>>> is the equivalent of <<<S.seek(P2)>>>.
+    <this only holds if S.seek(P1) does not raise an exception -can we explicitly
+    declare that this elision can ignore that possibility?>
+  
+    [[1]] On <<<S.seek(P)>>> with <P < 0> an exception MUST be thrown.
+    It SHOULD be an <<<IOException>>>. It MAY be an <<<IllegalArgumentException >>>
+    or other <<<RuntimeException>>>.
+  
+    [[1]] On <<<S.seek(P)>>> with <P>><length(F)>, an <<<IOException>>> MAY be thrown.
+  
+    [[1]]  For all values of <P> in <Long> if <<<S.seek(P)>>> does not raise
+     an Exception, it is considered a successful seek.
+  
+    [[1]] For all successful <<<S.seek(P)>>> operations <<<S.getPos()>>> MUST equal <P>
+  
+    [[1]] This implies that a successful <<<S.seek(S.getPos())>>> does not
+    change the cursor position with in the file. This is considered a no-op
+    that MAY therefore be bypassed completely.
+  
+    [[1]] For all S, P where <P = S.getPos()> and <P < length(F)>,
+    after <<<S.read())>>> , <<<S.getPos()>>> MUST equal <<<P+1>>>.
+  
+    [[1]] After <<<S.seek(P)>>> with <P> >=<length(F)>, If an exception is not thrown 
+    then <<<S.read()>>> MUST equal -1. The value of <<<S.getPos()>>> MUST be unchanged.
+  
+    [[1]] If an exception is not thrown after <<<S.seek(P)>>> with <P> >=<length(F)>,
+    then <<<S.read(Buffer, Offset, Len)>>> MUST equal -1.
+    The value of <<<S.getPos()>>> MUST be unchanged.
+  
+    [[1]] On <<<S.seek(P)>>> with < P >length(F) >,
+    if an <<<IOException>>> is not
+    thrown, then <<<S.read()>>> and
+    <<<S.read(byte[] buffer, int offset, int len )>>>
+    operation MUST return -1.
+  
+    [[1]] On <<<S.seek(P)>>> with <P> ><length(F)>,
+    if an <<<IOException>>> is not
+    thrown, <<<S.read(Buffer, Offset, Len )>>>
+    operation MUST return -1, and the contents of <Buffer> unchanged.
+  
+    [[1]] After a <<<S.seek(P)>>> with <0<=P<length(file)>,
+     <<<read(Buffer,0,1)>>> MUST set <<<Buffer[0]>>>
+      to the byte at position <<<P>>> in the file,
+     and <<<S.getPos()>>> MUST equal <<<P+1>>>
+     
+    [[1]] `<<<S.seekToNewSource(Pos)>>> SHOULD return false if the
+    filesystem does not implement multiple-data sources for files.
+    
+    [[1]] After `<<<S.seekToNewSource(Pos)>>> the value of <<<S.getPos()>>>
+    MUST be unchanged
+    
 
-  [[1]] For all values of <P> in <Long> where <<<S.seek(P)>>> does 
-  throw an exception, the outcomes of <<<S.getPos()>>> and <<<S.read()>>>
-  operations are undefined.
-
-  [[1]] After <<<S.close()>>>, <<<S.seek(P)>>> MUST fail with an <<<IOException>>>
-
-  [[1]] For all values of <P1>, <P2> in <Long>,  <<<S.seek(P1)>>> followed
-  by <<<S.seek(P2)>>> is the equivalent of <<<S.seek(P2)>>>.
-  <this only holds if S.seek(P1) does not raise an exception -can we explicitly
-  declare that this elision can ignore that possibility?>
-
-  [[1]] On <<<S.seek(P)>>> with <P < 0> an exception MUST be thrown.
-  It SHOULD be an <<<IOException>>>. It MAY be an <<<IllegalArgumentException >>>
-  or other <<<RuntimeException>>>.
-
-  [[1]] On <<<S.seek(P)>>> with <P>><length(F)>, an <<<IOException>>> MAY be thrown.
-
-  [[1]]  For all values of <P> in <Long> if <<<S.seek(P)>>> does not raise
-   an Exception, it is considered a successful seek.
-
-  [[1]] For all successful <<<S.seek(P)>>> operations <<<S.getPos()>>> MUST equal <P>
-
-  [[1]] This implies that a successful <<<S.seek(S.getPos())>>> does not
-  change the cursor position with in the file. This is considered a no-op
-  that MAY therefore be bypassed completely.
-
-  [[1]] For all S, P where <P = S.getPos()> and <P < length(F)>,
-  after <<<S.read())>>> , <<<S.getPos()>>> MUST equal <<<P+1>>>.
-
-  [[1]] After <<<S.seek(P)>>> with <P> >=<length(F)>, If an exception is not thrown 
-  then <<<S.read()>>> MUST equal -1. The value of <<<S.getPos()>>> MUST be unchanged.
-
-  [[1]] If an exception is not thrown after <<<S.seek(P)>>> with <P> >=<length(F)>,
-  then <<<S.read(Buffer, Offset, Len)>>> MUST equal -1.
-  The value of <<<S.getPos()>>> MUST be unchanged.
-
-  [[1]] On <<<S.seek(P)>>> with < P >length(F) >,
-  if an <<<IOException>>> is not
-  thrown, then <<<S.read()>>> and
-  <<<S.read(byte[] buffer, int offset, int len )>>>
-  operation MUST return -1.
-
-  [[1]] On <<<S.seek(P)>>> with <P> ><length(F)>,
-  if an <<<IOException>>> is not
-  thrown, <<<S.read(Buffer, Offset, Len )>>>
-  operation MUST return -1, and the contents of <Buffer> unchanged.
-
-  [[1]] After a <<<S.seek(P)>>> with <0<=P<length(file)>,
-   <<<read(Buffer,0,1)>>> MUST set <<<Buffer[0]>>> to the byte at position <P> in the file,
-   and <<<S.getPos()>>> MUST equal <P+1>
+* Irrespective of whether or a `seekToNewSource()` operation succeeds or fails,
+the stream's `getPos()` value MUST be the value which it was before the seek
+operation was invoked. Specifically, it is not a `seek()` operation, it is a
+request to bind to a new location of data in expectation of a read or seek
+operation fetching the new data.
 
 * PositionedReadable
 
-  [[1]] The result <R> of <<<S.read(P, Buffer, Offset, Len )>>> MUST be identical
-  to the sequence
+-------------
+public interface PositionedReadable {
+  public int read(long position, byte[] buffer, int offset, int length)
+    throws IOException;
+  public void readFully(long position, byte[] buffer, int offset, int length)
+    throws IOException;
+  public void readFully(long position, byte[] buffer) throws IOException;
+}
+-------------
+
+    [[1]] The result <R> of <<<S.read(Pos, Buffer, Offset, Len )>>> MUST be identical
+    to the sequence
 
 -----------
   P0 = S.getPos()
   try {
-    S.seek(P)
+    S.seek(Pos)
     R = S.read( Buffer, Offset, Len )
   } finally {
     S.seek(P0)
   }
 -----------
+  
+    [[1]] Degenerate case: The outcome of <<<S.read(S.getPos()), Buffer, Offset, Len )>>>
+    MUST be identical to that of the operation <<<S.read( Buffer, Offset, Len )>>>.
+    
+    [[1]] The outcome of <<<S.readFully(Pos, Buffer, Offset, Len )>>>
+    where <<<Pos + Len >> is less than the length of the file MUST be the same
+    as <<<S.read(Pos, Buffer, Offset, Len )>>>.
+  
+    [[1]] <<<S.readFully(Pos, Buffer, Offset, Len )>>>
+    where <<<Pos + Len >> is greater than the length of the file MUST raise an
+    <<<EOFException>>>.
+    
+    [[1]] <<<S.readFully(Pos, Buffer)>>> MUST be equivalent
+    to <<<S.readFully(Pos, Buffer, 0, Buffer.length )>>>
+    
+  
 
-  [[1]] Special case: The outcome of <<<S.read(S.getPos()), Buffer, Offset, Len )>>>
-  MUST be identical to that of the operation <<<S.read( Buffer, Offset, Len )>>>.
 
-  [[1]] The result <R> of <<<S.read(P, Buffer, Offset, Len )>>> MUST be identical
-  to the sequence
