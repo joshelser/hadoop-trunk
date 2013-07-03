@@ -22,6 +22,9 @@ import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
 import org.junit.Test;
 
+/**
+ * Test directory operations
+ */
 public abstract class AbstractDirectoryContractTest extends AbstractFSContractTestBase {
 
   @Test
@@ -35,7 +38,6 @@ public abstract class AbstractDirectoryContractTest extends AbstractFSContractTe
     assertDeleted(dir, false);
   }
 
-
   @Test
   public void testMkDirRmRfDir() throws Throwable {
     FileSystem fs = getFileSystem();
@@ -46,7 +48,5 @@ public abstract class AbstractDirectoryContractTest extends AbstractFSContractTe
     assertPathExists("mkdir failed", dir);
     assertDeleted(dir, true);
   }
-
-
   
 }

@@ -82,6 +82,4 @@ public interface ContractOptions {
    */
   String MAX__FILESIZE = "max-filesize";
 
-
-
 }

@@ -42,7 +42,6 @@ public class ContractTestUtils extends Assert {
 
   public static final String IO_FILE_BUFFER_SIZE = "io.file.buffer.size";
 
-
   /**
    * Assert that a property in the property set matches the expected value
    * @param props property set
@@ -305,7 +304,6 @@ public class ContractTestUtils extends Assert {
     throw new AssumptionViolatedException(message);
   }
 
-
   /**
    * Make an assertion about the length of a file
    * @param fs filesystem
@@ -448,6 +446,13 @@ public class ContractTestUtils extends Assert {
     return buf.toString();
   }
 
+  /**
+   * List a directory
+   * @param fileSystem FS
+   * @param path path
+   * @return a directory listing or failure message
+   * @throws IOException
+   */
   public static String ls(FileSystem fileSystem, Path path) throws IOException {
     if (path == null) {
       //surfaces when someone calls getParent() on something at the top of the path
@@ -566,6 +571,10 @@ public class ContractTestUtils extends Assert {
                       found);
   }
 
+  /**
+   * Test for the host being an OSX machine
+   * @return true if the JVM thinks that is running on OSX
+   */
   public static boolean isOSX() {
     return System.getProperty("os.name").contains("OS X");
   }

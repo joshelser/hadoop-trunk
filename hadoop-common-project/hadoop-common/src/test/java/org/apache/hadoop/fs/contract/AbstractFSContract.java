@@ -131,7 +131,6 @@ public abstract class AbstractFSContract extends Configured {
     return "fs." + getScheme() + ".contract.";
   }
 
-
   /**
    * Create a URI off the scheme
    * @param path path of URI

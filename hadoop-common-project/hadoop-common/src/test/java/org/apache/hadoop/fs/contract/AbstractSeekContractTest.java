@@ -31,7 +31,7 @@ import java.io.IOException;
 import static org.apache.hadoop.fs.contract.ContractTestUtils.*;
 
 /**
- * Seek operations
+ * Test Seek operations
  */
 public abstract class AbstractSeekContractTest extends AbstractFSContractTestBase {
   protected static final Log LOG =

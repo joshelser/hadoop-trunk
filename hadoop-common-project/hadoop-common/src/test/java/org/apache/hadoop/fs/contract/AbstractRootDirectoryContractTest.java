@@ -25,7 +25,7 @@ import org.junit.Test;
 /**
  * This class does things to the root directory.
  * Only subclass this for tests against transient filesystems where
- * you don't care about the data
+ * you don't care about the data.
  */
 public abstract class AbstractRootDirectoryContractTest extends AbstractFSContractTestBase {
 
@@ -48,7 +48,7 @@ public abstract class AbstractRootDirectoryContractTest extends AbstractFSContra
 
   @Test
   public void testRmRootDirNonRecursive() throws Throwable {
-    //extra sanity checks here to avoid support calls
+    //extra sanity checks here to avoid support calls about complete loss of data
     skipIfUnsupported(ROOT_TESTS_ENABLED);
     Path dir = path("/");
     ContractTestUtils.assertIsDirectory(getFileSystem(), dir);
@@ -59,7 +59,7 @@ public abstract class AbstractRootDirectoryContractTest extends AbstractFSContra
 
   @Test
   public void testRmRootRecursive() throws Throwable {
-    //extra sanity checks here to avoid support calls
+    //extra sanity checks here to avoid support calls about complete loss of data
     skipIfUnsupported(ROOT_TESTS_ENABLED);
     Path dir = path("/");
     ContractTestUtils.assertIsDirectory(getFileSystem(), dir);

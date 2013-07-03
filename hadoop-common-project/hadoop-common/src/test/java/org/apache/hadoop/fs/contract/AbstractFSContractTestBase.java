@@ -31,6 +31,9 @@ import static org.apache.hadoop.fs.contract.ContractTestUtils.*;
 
 import java.io.IOException;
 
+/**
+ * This is the base class for all the contract tests
+ */
 public abstract class AbstractFSContractTestBase extends Assert
   implements ContractOptions {
 
@@ -60,14 +63,19 @@ public abstract class AbstractFSContractTestBase extends Assert
     return contract;
   }
 
+  /**
+   * Get the filesystem created in startup
+   * @return the filesystem to use for tests
+   */
   public FileSystem getFileSystem() {
     return fileSystem;
   }
 
-  protected FileSystem getTestFileSystem() throws IOException {
-    return contract.getTestFileSystem();
-  }
-
+  /**
+   * Skip a test if a feature is unsupported in this FS
+   * @param feature feature to look for
+   * @throws IOException IO problem
+   */
   protected void skipIfUnsupported(String feature) throws IOException {
     if (!contract.isSupported(feature, false)) {
       skip("Skipping as unsupported feature: " + feature);
