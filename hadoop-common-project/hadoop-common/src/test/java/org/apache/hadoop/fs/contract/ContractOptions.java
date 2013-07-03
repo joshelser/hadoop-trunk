@@ -71,6 +71,12 @@ public interface ContractOptions {
   String SUPPORTS_SEEK_PAST_EOF = "supports-seek-past-eof";
 
   /**
+   * Does the FS support multiple block locations?
+   * @{value}
+   */
+  String SUPPORTS_BLOCK_LOCALITY = "supports-block-locality";
+
+  /**
    * Maximum path length
    * @{value}
    */

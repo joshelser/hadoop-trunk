@@ -21,13 +21,15 @@
   Here are most of the local FS contract options.
   some of them are generated on the fly/overridden based on the OS
   -->
+
+
   <property>
-    <name>fs.file.contract.is-case-sensitive</name>
-    <value>true</value>
+    <name>fs.file.contract.root-tests-enabled</name>
+    <value>false</value>
   </property>
 
   <property>
-    <name>fs.file.contract.supports-unix-permissions</name>
+    <name>fs.file.contract.is-case-sensitive</name>
     <value>true</value>
   </property>
 
@@ -37,13 +39,8 @@
   </property>
 
   <property>
-    <name>fs.file.contract.supports-seek-past-eof</name>
+    <name>fs.file.contract.supports-atomic-directory-delete</name>
     <value>true</value>
-  </property>
-
-  <property>
-    <name>fs.file.contract.root-tests-enabled</name>
-    <value>false</value>
   </property>
 
   <property>
@@ -52,7 +49,12 @@
   </property>
 
   <property>
-    <name>fs.file.contract.supports-atomic-directory-delete</name>
+    <name>fs.file.contract.supports-block-locality</name>
+    <value>false</value>
+  </property>
+
+  <property>
+    <name>fs.file.contract.supports-seek-past-eof</name>
     <value>true</value>
   </property>
 
