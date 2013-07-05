@@ -22,10 +22,12 @@ import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.conf.Configured;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
+import org.junit.Assert;
 
 import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.net.URL;
 
 /**
  * Class representing a filesystem contract that a filesystem
@@ -38,6 +40,8 @@ import java.net.URISyntaxException;
  * and limit filesize and other numeric variables for scale tests
  */
 public abstract class AbstractFSContract extends Configured {
+  protected boolean enabled = true;
+
   protected AbstractFSContract(Configuration conf) {
     super(conf);
   }
@@ -49,6 +53,13 @@ public abstract class AbstractFSContract extends Configured {
   public void init() throws IOException {
 
   }
+  
+  protected void addConfResource(String resource) {
+    URL url = this.getClass().getClassLoader().getResource(resource);
+    Assert.assertNotNull("Resource not found " + resource, url);
+    getConf().addResource(resource);
+  }
+    
 
   /**
    * Get the FS from a URI. The default implementation just retrieves
@@ -86,9 +97,10 @@ public abstract class AbstractFSContract extends Configured {
    * @return true if the tests can be run.
    */
   public boolean isEnabled() {
-    return true;
+    return enabled;
   }
 
+  
   /**
    * Query for a feature being supported. This may include a probe for the feature
    *
@@ -148,5 +160,9 @@ public abstract class AbstractFSContract extends Configured {
   @Override
   public String toString() {
     return "FSContract for " + getScheme();
+  }
+
+  public void setEnabled(boolean enabled) {
+    this.enabled = enabled;
   }
 }

@@ -37,6 +37,7 @@ import java.io.IOException;
 public abstract class AbstractFSContractTestBase extends Assert
   implements ContractOptions {
 
+  public static final int TEST_FILE_LEN = 1024;
   /**
    * The FS contract used for these tets
    */
@@ -88,7 +89,6 @@ public abstract class AbstractFSContractTestBase extends Assert
   protected void assumeEnabled() {
     Assume.assumeTrue(contract.isEnabled());
   }
-
 
   /**
    * Create a configuration. May be overridden by tests/instantiations

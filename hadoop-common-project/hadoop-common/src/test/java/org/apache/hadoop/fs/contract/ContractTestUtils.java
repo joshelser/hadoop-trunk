@@ -578,4 +578,30 @@ public class ContractTestUtils extends Assert {
   public static boolean isOSX() {
     return System.getProperty("os.name").contains("OS X");
   }
+
+  //
+
+  /**
+   * compare content
+   * @param concat concatenated files
+   * @param bytes bytes
+   */
+  public static void checkConcatFileContent(byte[] concat, byte[][] bytes) {
+    int idx = 0;
+    boolean mismatch = false;
+
+    for (byte[] bb : bytes) {
+      for (byte b : bb) {
+        if (b != concat[idx++]) {
+          mismatch = true;
+          break;
+        }
+      }
+      if (mismatch)
+        break;
+    }
+    assertFalse("File content of concatenated file is different at offse " + idx,
+                mismatch);
+  }
+
 }

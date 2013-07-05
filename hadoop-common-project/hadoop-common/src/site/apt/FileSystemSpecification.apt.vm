@@ -308,43 +308,7 @@ Apache Hadoop FileSystem Specification
   The operations that a filesystem supports either examines the paths and
   reference data, or updates it.
 
-** Definitions
-
-  <iff> is shorthand for <if and only if>
-
-  <<<length(F: Path): Int>>> is a function which returns the length of a File, F
-
-  <<<exists(F: Path): boolean>>> is a function which returns <<<true>>> iff
-  the path resolves to an file, directory or other entity within the filesystem.
-
-  <<<isDir(F: Path): boolean>>> is a function which returns <<<true>>> iff
-  <<<exists(F)>>> and F represents a directory.
-
-  <<<isFile(F: Path): boolean>>> is a function which returns <<<true>>> iff
-  <<<exists(F)>>> and F represents a file.
-
-  <<<isSymLink(F: Path): boolean>>> is a function which returns <<<true>>> iff
-  <<<exists(F)>>> and F represents a symbolic link.
-  
-  <<<isRoot(F: Path): boolean>>> is a function which returns <<<true>>> iff
-  F is the root directory of a filesystem.
-  
-  <<<isAncestor(P1: Path, P2: Path): boolean>>> is a function which returns
-   <<<true>>> iff P1 is a parent or ancestor of P2 in the file hierarchy
-   -irrespective of whether or not either path exists
-
-  <<<pos(S: Stream): int>>> is a function which returns the position of an
-  input stream reading a file.
-
-  <<<min(X: T, Y:T):T >>> is a function which returns the smallest of <(X,Y)> 
-  for a type in the set <<<(integer, long)>>>
-  
-  <<<parent(P: Path): Path)>>> is a function that returns the parent of a path
-  <<<data(P: Path): byte[])>>> is a function that, for any path
-  where <<<exists(P)>>>, returns the data referenced by that path. If there
-  is no data, an empty array <<<[]>>> is returned.
- 
-** A Model of Paths, Directories and Files
+  Note that <iff> is shorthand for <if and only if>
  
   A <Filesystem>, <FS> contains a finite set of <Path> elements that
   refer to filesystem entities that MUST include
@@ -368,18 +332,18 @@ Apache Hadoop FileSystem Specification
   
 -----------
 
-  parent([])      ::== nil
-  parent([T])     ::== []
-  parent([H | T]) ::== [H | parent(T)]
+  parent([])      := nil
+  parent([T])     := []
+  parent([H | T]) := [H | parent(T)]
   
 -----------
   
   Path elements are non-empty strings. The exact set of valid strings MAY 
   be specific to a particular filesystem implementation.
   
-  Path Elements MUST NOT be in ["", ".",  "..", "/"]
+  Path Elements MUST NOT be in <<<"", ".",  "..", "/">>>
 
-  Path Elements MUST NOT contain the strings "/" and ":".
+  Path Elements MUST NOT contain the strings <<<"/">>> or <<<":">>>.
   
   Filesystems MAY have other strings that are not permitted in a path element.
   
@@ -387,22 +351,25 @@ Apache Hadoop FileSystem Specification
   
 -----------
 
-  filename([]) = undefined
-  filename([H]) = H
-  filename([H|T]) = filename(T)
+  filename([])    := undefined
+  filename([H])   := H
+  filename([H|T]) := filename(T)
 
 -----------
 
   The childElements of a path D that is a descendent of path P 
   is the list of path elements in D that follow the path P
   
-  childElements([],C) = C
-  childElements(P,[]) => error
-  childElements([H|T],[H|T2]) = childelements(T, T2)
+-----------
+
+  childElements([],C) := C
+  childElements(P,[]) :  error
+  childElements([H|T],[H|T2]) := childelements(T, T2)
   # the outcome is not defined if the path D is not equal to or
   # a descendent of path P
-  childElements([H2|T],[H|T2]) where H2 != H ==>  error
+  childElements([H2|T],[H|T2]) where H2 != H :  error
   
+-----------
 
   
   A path MAY refer to a directory
@@ -434,10 +401,10 @@ Apache Hadoop FileSystem Specification
   
 -----------
 
-  paths(FS) ::= the proper subset of the set of all Paths
+  paths(FS) := the proper subset of the set of all Paths
                 which exist in the filesystem FS
 
-  P in paths(FS) => exists(FS, P)
+  paths(FS) := all P in Paths where exists(FS, P)
 
 -----------  
 
@@ -446,7 +413,7 @@ Apache Hadoop FileSystem Specification
 -----------
 
   
-  isRoot(P) ::= P==[].
+  isRoot(P) := P == [].
   
   forall FS in FileSystems : exists(FS,[]) && isDirectory(FS, []).
   forall FS in FileSystems : exists P in paths(FS) where isRoot(P)
@@ -475,8 +442,6 @@ Apache Hadoop FileSystem Specification
   in the filesystem whose path begins with a directory. This can be expressed
   by saying that every path's parent must be a directory.
   
-
-   
   It can then be declared that a path has no parent
   -in which case it is the root directory,
   or it MUST have a parent that is a directory
@@ -503,7 +468,7 @@ Apache Hadoop FileSystem Specification
   
 -----------
 
-  children(FS, P) ::= all C in paths(FS) where parent(C) == P
+  children(FS, P) := all C in paths(FS) where parent(C) == P
 
 -----------
 
@@ -516,7 +481,7 @@ Apache Hadoop FileSystem Specification
   
 -----------
 
-  isDescendent(P, D) ::= parent(D) == P where isDescendent(P, parent(D)) 
+  isDescendent(P, D) := parent(D) == P where isDescendent(P, parent(D)) 
   
 -----------
 
@@ -525,7 +490,7 @@ Apache Hadoop FileSystem Specification
 
 -----------
 
-  descendents(FS, D) :: all P in paths(FS) where isDescendent(D,P) 
+  descendents(FS, D) := all P in paths(FS) where isDescendent(D,P) 
   
 -----------
 
@@ -775,7 +740,7 @@ Apache Hadoop FileSystem Specification
     * The return code of renaming a directory to itself is unspecified. 
 
 
-** `FileSystem.listStatus(Path P, PathFilter Filter)` 
+** FileSystem.listStatus(Path P, PathFilter Filter) 
 
   A <<<PathFilter)>>>) is a predicate function that returns true iff the path P
  meets the filter's requirements.
@@ -801,13 +766,13 @@ Apache Hadoop FileSystem Specification
   
 -----------
 
-  * After a file is created, all <<<`listStatus()>>>` operations on the file and parent
+  * After a file is created, all <<<listStatus()>>> operations on the file and parent
     directory MUST find the file.
   
-  * After a file is deleted, all `<<<listStatus()>>>` operations on the file and parent
+  * After a file is deleted, all <<<listStatus()>>> operations on the file and parent
     directory MUST NOT find the file.
   
-  * By the time the `<<<listStatus()>>>` operation returns to the caller, there
+  * By the time the <<<listStatus()>>> operation returns to the caller, there
   is no guarantee that the information contained in the response is current.
   The details MAY be out of date -including the contents of any directory, the
   attributes of any files, and the existence of the path supplied. 
@@ -957,7 +922,7 @@ FSDataOutputStream create(Path P,
   
 ** FSDataOutputStream append(Path f, int bufferSize, Progressable progress
 
-  Implementations MAY throw {{UnsupportedOperationException}}
+  Implementations MAY throw <<UnsupportedOperationException>>
 
   Preconditions
 
@@ -978,7 +943,7 @@ FSDataOutputStream create(Path P,
 
 ** concat(Path T, Path Srcs[])
 
-  Implementations MAY throw {{UnsupportedOperationException}}
+  Implementations MAY throw <<UnsupportedOperationException>>
 
   Preconditions
 

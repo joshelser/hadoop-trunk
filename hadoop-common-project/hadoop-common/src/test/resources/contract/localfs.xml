@@ -19,9 +19,9 @@
 <configuration>
   <!--
   Here are most of the local FS contract options.
-  some of them are generated on the fly/overridden based on the OS
+  some of them may be overridden at run time based on the OS,
+  others potentially generated.
   -->
-
 
   <property>
     <name>fs.file.contract.root-tests-enabled</name>
@@ -50,6 +50,11 @@
 
   <property>
     <name>fs.file.contract.supports-block-locality</name>
+    <value>false</value>
+  </property>
+
+  <property>
+    <name>fs.file.contract.supports-concat</name>
     <value>false</value>
   </property>
 

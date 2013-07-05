@@ -16,42 +16,35 @@
  *  limitations under the License.
  */
 
-package org.apache.hadoop.fs.contract.mock;
+package org.apache.hadoop.fs.contract.hdfs;
 
 import org.apache.hadoop.conf.Configuration;
-import org.apache.hadoop.fs.FileSystem;
-import org.apache.hadoop.fs.Path;
+import org.apache.hadoop.fs.contract.AbstractConcatContractTest;
 import org.apache.hadoop.fs.contract.AbstractFSContract;
-import org.apache.hadoop.fs.contract.localfs.LocalFSContract;
+import org.apache.hadoop.fs.contract.AbstractSeekContractTest;
+import org.junit.AfterClass;
+import org.junit.BeforeClass;
 
 import java.io.IOException;
 
 /**
- * mock fs for testing the contract tests
+ * Test dir operations on a the local FS.
  */
-public class MockFSContract extends AbstractFSContract {
+public class TestHDFSConcatContract extends AbstractConcatContractTest {
 
-  public MockFSContract(Configuration conf) {
-    this(conf, true);
+  @BeforeClass
+  public static void createCluster() throws IOException {
+    HDFSContract.createCluster();
+    HDFSContract.getCluster().getFileSystem().getDefaultBlockSize();
   }
-
-  public MockFSContract(Configuration conf, boolean enabled) {
-    super(conf);
-    setEnabled(enabled);
+  
+  @AfterClass
+  public static void teardownCluster() throws IOException {
+    HDFSContract.destroyCluster();
   }
-
+  
   @Override
-  public FileSystem getTestFileSystem() throws IOException {
-    return FileSystem.getLocal(getConf());
-  }
-
-  @Override
-  public String getScheme() {
-    return "mock";
-  }
-
-  @Override
-  public Path getTestPath() {
-    return new Path("/test");
+  protected AbstractFSContract createContract(Configuration conf) {
+    return new HDFSContract(conf);
   }
 }

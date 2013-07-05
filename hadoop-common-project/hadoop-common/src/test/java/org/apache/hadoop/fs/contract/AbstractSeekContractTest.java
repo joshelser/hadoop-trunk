@@ -36,7 +36,6 @@ import static org.apache.hadoop.fs.contract.ContractTestUtils.*;
 public abstract class AbstractSeekContractTest extends AbstractFSContractTestBase {
   protected static final Log LOG =
     LogFactory.getLog(AbstractSeekContractTest.class);
-  public static final int SMALL_SEEK_FILE_LEN = 256;
 
   private Path testPath;
   private Path smallSeekFile;
@@ -50,7 +49,7 @@ public abstract class AbstractSeekContractTest extends AbstractFSContractTestBas
     testPath = path("test");
     smallSeekFile = new Path(testPath, "seekfile.txt");
     zeroByteFile = new Path(testPath, "zero.txt");
-    byte[] block = dataset(SMALL_SEEK_FILE_LEN, 0, 255);
+    byte[] block = dataset(TEST_FILE_LEN, 0, 255);
     //this file now has a simple rule: offset => value
     createFile(getFileSystem(),smallSeekFile, false, block);
     touch(getFileSystem(), zeroByteFile);
@@ -158,7 +157,7 @@ public abstract class AbstractSeekContractTest extends AbstractFSContractTestBas
     assertEquals(0, instream.getPos());
     //expect that seek to 0 works
     //go just before the end
-    instream.seek(SMALL_SEEK_FILE_LEN - 2);
+    instream.seek(TEST_FILE_LEN - 2);
     assertTrue("Premature EOF", instream.read() != -1);
     assertTrue("Premature EOF", instream.read() != -1);
     assertMinusOne("read past end of file", instream.read());
@@ -170,7 +169,7 @@ public abstract class AbstractSeekContractTest extends AbstractFSContractTestBas
     //go just before the end. This may or may not fail; it may be delayed until the
     //read
     try {
-      instream.seek(SMALL_SEEK_FILE_LEN);
+      instream.seek(TEST_FILE_LEN);
       //if this doesn't trigger, then read() is expected to fail
       assertMinusOne("read after seeking past EOF", instream.read());
     } catch (EOFException expected) {

@@ -16,16 +16,18 @@
  *  limitations under the License.
  */
 
-package org.apache.hadoop.fs.contract.localfs;
+package org.apache.hadoop.fs.contract.hdfs;
 
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FileSystem;
-import org.apache.hadoop.fs.LocalFileSystem;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.fs.contract.AbstractFSContract;
+import org.apache.hadoop.fs.contract.AbstractFSContractTestBase;
 import org.apache.hadoop.fs.contract.ContractOptions;
-import org.apache.hadoop.fs.contract.ContractTestUtils;
-import org.apache.hadoop.util.Shell;
+import org.apache.hadoop.hdfs.DFSConfigKeys;
+import org.apache.hadoop.hdfs.HdfsConfiguration;
+import org.apache.hadoop.hdfs.MiniDFSCluster;
+import org.junit.Assert;
 
 import java.io.IOException;
 
@@ -34,48 +36,61 @@ import java.io.IOException;
  * This changes its feature set from platform for platform -the default
  * set is updated during initialization.
  */
-public class LocalFSContract extends AbstractFSContract {
+public class HDFSContract extends AbstractFSContract {
 
-  public static final String CONTRACT_XML = "contract/localfs.xml";
-  private LocalFileSystem fs;
-
-  public LocalFSContract(Configuration conf) {
+  public static final String CONTRACT_HDFS_XML = "contract/hdfs.xml";
+  public static final int BLOCK_SIZE = AbstractFSContractTestBase.TEST_FILE_LEN;
+  private static MiniDFSCluster cluster;
+  
+  public HDFSContract(Configuration conf) {
     super(conf);
     //insert the base features
-    addConfResource(CONTRACT_XML);
+    addConfResource(CONTRACT_HDFS_XML);
+  }
+
+  public static void createCluster() throws IOException {
+    HdfsConfiguration conf = new HdfsConfiguration();
+    conf.addResource(CONTRACT_HDFS_XML);
+    //hack in a 256 byte block size
+    conf.setInt(DFSConfigKeys.DFS_BLOCK_SIZE_KEY, BLOCK_SIZE);
+    
+    cluster =
+      new MiniDFSCluster.Builder(conf).numDataNodes(2).build();
+    cluster.waitClusterUp();
+  }
+
+  public static void destroyCluster() throws IOException {
+    if (cluster!=null) {
+      cluster.shutdown();
+    }
+  }
+
+  public static MiniDFSCluster getCluster() {
+    return cluster;
   }
 
   @Override
   public void init() throws IOException {
     super.init();
-    fs = FileSystem.getLocal(getConf());
-    //see if this FS is windows and tweak some of
-    //the contract parameters
-    if (Shell.WINDOWS) {
-      //NTFS doesn't do case sensitivity, and its permissions are ACL-based
-      getConf().setBoolean(getConfKey(ContractOptions.IS_CASE_SENSITIVE), false);
-      getConf().setBoolean(getConfKey(ContractOptions.SUPPORTS_UNIX_PERMISSIONS), false);
-    } else if (ContractTestUtils.isOSX()) {
-      //OSX is not case sensitive
-      getConf().setBoolean(getConfKey(ContractOptions.IS_CASE_SENSITIVE),
-                           false);
-    }
+    Assert.assertTrue("contract options not loaded",
+                      isSupported(ContractOptions.IS_CASE_SENSITIVE, false));
   }
 
   @Override
   public FileSystem getTestFileSystem() throws IOException {
-    return fs;
+    //assumes cluster is not null
+    Assert.assertNotNull("cluster not created", cluster);
+    return cluster.getFileSystem();
   }
 
   @Override
   public String getScheme() {
-    return "file";
+    return "hdfs";
   }
 
   @Override
   public Path getTestPath() {
-    Path path = fs.makeQualified(new Path(
-      System.getProperty("test.build.data", "test/build/data")));
+    Path path = new Path("/test");
     return path;
   }
 }

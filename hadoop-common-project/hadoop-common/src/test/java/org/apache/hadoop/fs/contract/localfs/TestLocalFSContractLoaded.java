@@ -16,28 +16,38 @@
  *  limitations under the License.
  */
 
-package org.apache.hadoop.fs.contract.mock;
+package org.apache.hadoop.fs.contract.localfs;
 
 import org.apache.hadoop.conf.Configuration;
+import org.apache.hadoop.fs.contract.AbstractDirectoryContractTest;
 import org.apache.hadoop.fs.contract.AbstractFSContract;
-import org.apache.hadoop.fs.contract.AbstractFSContractTestBase;
-import org.apache.hadoop.fs.contract.ContractOptions;
 import org.junit.Test;
 
+import java.net.URL;
+
 /**
- * Test dir operations on a the local FS.
+ * test of contract tests itself more than anything else
  */
-public class TestMockFSContract extends AbstractFSContractTestBase {
+public class TestLocalFSContractLoaded extends AbstractDirectoryContractTest {
 
   @Override
   protected AbstractFSContract createContract(Configuration conf) {
-    return new MockFSContract(conf);
+    return new LocalFSContract(conf);
   }
 
   @Test
-  public void testExpectSkipDisabledFeature() throws Throwable {
-    skipIfUnsupported(ContractOptions.IS_BLOBSTORE);
-    fail("Expected test to be skipped");
+  public void testContractWorks() throws Throwable {
+    String key = getContract().getConfKey(SUPPORTS_ATOMIC_RENAME);
+    assertNotNull("not set: " + key, getContract().getConf().get(key));
+    assertTrue("not true: " + key,
+               getContract().isSupported(SUPPORTS_ATOMIC_RENAME, false));
   }
-  
+
+  @Test
+  public void testContractResourceOnClasspath() throws Throwable {
+    URL url = this.getClass()
+                       .getClassLoader()
+                       .getResource(LocalFSContract.CONTRACT_XML);
+    assertNotNull("could not find contract resource", url);
+  }
 }

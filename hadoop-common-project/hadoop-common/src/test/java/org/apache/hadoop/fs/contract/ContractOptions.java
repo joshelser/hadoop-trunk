@@ -46,11 +46,6 @@ public interface ContractOptions {
   /**
    * @{value}
    */
-  String ROOT_TESTS_ENABLED = "root-tests-enabled";
-
-  /**
-   * @{value}
-   */
   String SUPPORTS_ATOMIC_RENAME = "supports-atomic-rename";
 
   /**
@@ -59,9 +54,16 @@ public interface ContractOptions {
   String SUPPORTS_ATOMIC_DIRECTORY_DELETE = "supports-atomic-directory-delete";
 
   /**
+   * Does the FS support multiple block locations?
    * @{value}
    */
-  String SUPPORTS_UNIX_PERMISSIONS = "supports-unix-permissions";
+  String SUPPORTS_BLOCK_LOCALITY = "supports-block-locality";
+
+  /**
+   * Does the FS support multiple block locations?
+   * @{value}
+   */
+  String SUPPORTS_CONTAT = "supports-concat";
 
   /**
    * Is seeking past the EOF supported? Some filesystems only raise an
@@ -71,10 +73,9 @@ public interface ContractOptions {
   String SUPPORTS_SEEK_PAST_EOF = "supports-seek-past-eof";
 
   /**
-   * Does the FS support multiple block locations?
    * @{value}
    */
-  String SUPPORTS_BLOCK_LOCALITY = "supports-block-locality";
+  String SUPPORTS_UNIX_PERMISSIONS = "supports-unix-permissions";
 
   /**
    * Maximum path length
@@ -86,6 +87,10 @@ public interface ContractOptions {
    * Maximum filesize: 0 or -1 for no limit
    * @{value}
    */
-  String MAX__FILESIZE = "max-filesize";
+  String MAX_FILESIZE = "max-filesize";
 
+  /**
+   * @{value}
+   */
+  String ROOT_TESTS_ENABLED = "root-tests-enabled";
 }
