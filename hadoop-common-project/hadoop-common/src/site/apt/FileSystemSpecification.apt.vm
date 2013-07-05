@@ -637,7 +637,7 @@ Apache Hadoop FileSystem Specification
 -----------
 
   The probe for the existence and type of a path and directory creation MUST be
-  atomic. The combined operation, including {{mkdirs(parent(F))}} MAY be atomic.
+  atomic. The combined operation, including <<<mkdirs(parent(F))>>> MAY be atomic.
 
 
 ** <<<FileSystem.delete(Path P, boolean recursive)>>>
@@ -852,15 +852,16 @@ Apache Hadoop FileSystem Specification
   of elements as the cluster topology MUST be provided, hence the 
   <<"/default/localhost">> path
   
-  * HDFS throws <<<HadoopIllegalArgumentException>>> for an offset
-  or length <0; as this extends IllegalArgumentException it is valid.
+  * HDFS throws <<<HadoopIllegalArgumentException>>> for an invalid offset
+  or length; this extends <<<IllegalArgumentException>>>.
   
   * There is no implicit check for the FileStatus referring to a 
-  directory. As FileStatus.getLen() for a directory is 0, it is
+  directory. As <<<FileStatus.getLen()>>> for a directory is 0, it is
   implictly returning []
 
 
-  REVIEW: MUST throw an `IOException` instance if `path.isDirectory()` is true
+  <<REVIEW>>: Action if <<isDirectory(FS, P)>> ? 
+  
  
 **  getFileBlockLocations(Path P, int S, int L)
 
@@ -869,7 +870,7 @@ Apache Hadoop FileSystem Specification
 -----------
 
   P != null || throw NullPointerException
-  exists(P) || throw FileNotFoundException
+  exists(FS, P) || throw FileNotFoundException
   
 -----------
 
@@ -927,8 +928,8 @@ FSDataOutputStream create(Path P,
 -----------
 
     # MUST raise FileAlreadyExistsException, FileNotFoundException
-    ! exists(P) || (overwrite && isFile(P))
-    isDir(parent(P)) || mkdirs(parent(P))
+    ! exists(FS, P) || (overwrite && isFile(FS, P))
+    isDir(FS, parent(P)) || mkdirs(parent(P))
 
 -----------
 
@@ -936,7 +937,7 @@ FSDataOutputStream create(Path P,
   
 -----------
 
-    FS' where (isFile(P))) 
+    FS' where (isFile(FS, P))) 
   
 -----------
 
@@ -962,8 +963,8 @@ FSDataOutputStream create(Path P,
 
 -----------
 
-    exists(P) || throw  FileNotFoundException
-    isFile(P))|| throw  IOException or subclass, including FileNotFoundException
+    exists(FS, P) || throw  FileNotFoundException
+    isFile(FS, P))|| throw  IOException or subclass, including FileNotFoundException
 
 -----------
 
@@ -975,7 +976,7 @@ FSDataOutputStream create(Path P,
 
   Return: <<<FSOutputStream>>>, 
 
-** concat(Path f, int bufferSize, Progressable progress
+** concat(Path T, Path Srcs[])
 
   Implementations MAY throw {{UnsupportedOperationException}}
 
@@ -983,18 +984,74 @@ FSDataOutputStream create(Path P,
 
 -----------
 
-    exists(P) || throw  FileNotFoundException
-    isFile(P))|| throw  IOException or subclass, including FileNotFoundException
+    Srcs!=[] || throw IllegalArgumentException
+    exists(FS, T)
+    
+    # all sources MUST be in the same directory
+    forall S in Srcs: parent(S) == parent(T) 
+      || throw IllegalArgumentException
+    
+    #HDFS: all block sizes to match the target
+    forall S in Srcs: getBlockSize(FS, S) == getBlockSize(FS, T)
+    
+    #HDFS: no duplicate paths
+    ! (exists P1, P2 in (Srcs+T) where P1==P2)
+    
+    #HFDS: All src files except the final one MUST be a complete block
+    forall S in (Srcs[0..length(Srcs)-2] +T):
+      (length(FS, S) % getBlockSize(FS, T)) == 0
+
 
 -----------
 
   Postconditions
-  
------------
-  
+
 -----------
 
-  Return: <<<FSOutputStream>>>, 
+  FS' where
+   (data(FS', T) = data(FS, T) + data(FS, Srcs[0]) + ... + data(FS, Srcs[length(Srcs)-1]))
+   && forall S in Srcs: !exists(FS', S)
+   
+-----------
+
+  * HDFS's restrictions may be an implementation detail of how it implements
+  <<<concat>>> -by changing the inode references to join them together in 
+  a sequence.
+  
+~~ ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+* FSDataOutputStream extends DataOutputStream implements Syncable
+
+  The specification of <<<DataOutputStream>>> is defined by
+   <<<java.io.DataOutputStream>>> 
+
+------------
+
+public interface Syncable {
+  
+  /** Flush out the data in client's user buffer. After the return of
+   * this call, new readers will see the data.
+   * @throws IOException if any error occurs
+   */
+  public void hflush() throws IOException;
+  
+  /** Similar to posix fsync, flush out the data in client's user buffer 
+   * all the way to the disk device (but the disk may have it in its cache).
+   * @throws IOException if error occurs
+   */
+  public void hsync() throws IOException;
+}
+
+------------
+
+   <<<FSDataOutputStream.hflush()>>> delegates to <<<OutputStream.flush()>>> unless
+  the stream it is wrapping implements <<<Syncable>>> -in which case it calls 
+  it.
+
+   <<<FSDataOutputStream.hsync()>>> delegates to <<<OutputStream.flush()>>> unless
+  the stream it is wrapping implements <<<Syncable>>>, in -which case it is called
+
+  
 
 ~~ ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
