@@ -20,6 +20,8 @@ Apache Hadoop FileSystem Specification
 
 ~~ %{toc|section=1|fromDepth=0}
 
+~~ ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
 * {Introduction}
 
   This document defines the expected behaviors of a Hadoop-compatible filesystem,
@@ -105,13 +107,13 @@ Apache Hadoop FileSystem Specification
     
     * Case-insensitive and locale-specific comparisons MUST NOT not be used.
     
-    * A path component is unicode string of 1 or more characters.
+    * A path element is a unicode string of 1 or more characters.
     
-    * Path components MUST NOT include the characters <<<":">>> or <<<"/">>>.
+    * Path element MUST NOT include the characters <<<":">>> or <<<"/">>>.
     
-    * Path components MUST NOT include characters of ASCII/UTF-8 value 0-31 .
+    * Path element SHOULD NOT include characters of ASCII/UTF-8 value 0-31 .
     
-    * Path components MUST NOT be <<<".">>>  or <<<"..">>> 
+    * Path element MUST NOT be <<<".">>>  or <<<"..">>> 
     
     * Note also that the Azure blob store documents say that paths SHOULD NOT use
      a trailing <<<".">>> (as their .NET URI class strips it).
@@ -136,16 +138,18 @@ Apache Hadoop FileSystem Specification
   * The immediate consistency state of a filesystem after a network failure is undefined.
   
   * If a network failure can be reported to the client, the failure MUST be an
-    instance of `<<<IOException>>>`
+    instance of <<<IOException>>>
   
   * The exception details SHOULD include diagnostics suitable for an experienced
     Java developer _or_ operations team to begin diagnostics. For example: source
-    and destination hostnames and ports on a `ConnectionRefused` exception.
+    and destination hostnames and ports on a ConnectionRefused exception.
   
   * The exception details MAY include diagnostics suitable for inexperienced
     developers to begin diagnostics. For example Hadoop tries to include a
     reference to {{{http://wiki.apache.org/hadoop/ConnectionRefused}}} when a TCP
     connection request is refused.
+
+~~ ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 * Core requirements of a Hadoop Compatible Filesystem
 
@@ -168,17 +172,17 @@ Apache Hadoop FileSystem Specification
   recursive directory deletion, none of the other FileSystems that Hadoop supports
   offers such a guarantee -including the local filesystems.
   
-  * `<<<mkdir()>>>` SHOULD be atomic.
+  * <<<mkdir()>>> SHOULD be atomic.
   
-  * `<<<mkdirs()>>>` MAY be atomic. [It is *currently* atomic on HDFS, but this is not
+  * <<<mkdirs()>>> MAY be atomic. [It is *currently* atomic on HDFS, but this is not
   the case for most other filesystems -and cannot be guaranteed for future
   versions of HDFS]
   
-  * If `<<<append()>>>` is implemented, each individual `<<<append()>>>` 
+  * If <<<append()>>> is implemented, each individual <<<append()>>> 
   operation SHOULD be atomic.
   
-  * `<<<FileSystem.listStatus()>>>` does contain any guarantees of atomicity,
-    though some uses in the MapReduce codebase (such as `<<<FileOutputCommitter>>>`) do
+  * <<<FileSystem.listStatus()>>> does contain any guarantees of atomicity,
+    though some uses in the MapReduce codebase (such as <<<FileOutputCommitter>>>) do
     assume that the listed directories do not get deleted between listing their
     status and recursive actions on the listed entries.
 
@@ -188,17 +192,17 @@ Apache Hadoop FileSystem Specification
   that generally that of a traditional Posix filesystem. (Note that NFS relaxes
   some constraints about how fast changes propagate)
   
-  * Create: once the `<<<close()>>>` operation on an output stream writing a newly
+  * Create: once the <<<close()>>> operation on an output stream writing a newly
   created file has completed, in-cluster operations querying the file metadata
   and contents MUST immediately see the file and its data.
   
-  *  Update: Once  the `<<<close()>>>`  operation on  an output  stream writing  a newly
+  *  Update: Once  the <<<close()>>>  operation on  an output  stream writing  a newly
   created file  has completed,  in-cluster operations  querying the  file metadata
   and contents MUST immediately see the new data.
   
-  *  Delete:   once  a  `<<<delete()>>>`   operation  is   on  a  file   has  completed,
+  *  Delete:   once  a  <<<delete()>>>   operation  is   on  a  file   has  completed,
   it MUST NOT be visible or accessible. Specifically
-  `<<<listStatus()>>>`, `<<<open()>>>`,`<<<rename()>>>` and `<<<append()>>>`
+  <<<listStatus()>>>, <<<open()>>>,<<<rename()>>> and <<<append()>>>
    operations MUST fail.
   
   * When file is deleted then a new file of the same name created, the new file
@@ -216,22 +220,22 @@ Apache Hadoop FileSystem Specification
   * The data added to a file during a write or append MAY be visible while the
     write operation is in progress.
   
-  * If a client opens a file for a <<<read()>>>` operation while another `<<<read()>>>`
+  * If a client opens a file for a <<<read()>>> operation while another <<<read()>>>
     operation is in progress, the second operation MUST succeed. Both clients
     MUST have a consistent view of the same data.
   
-  * If a file is deleted while a `<<<read()>>>` operation is in progress, the
-    <<<`delete()`>>> operation SHOULD complete successfully. Implementations MAY cause
-    <<<`delete()`>>> to fail with an `IOException` instead.
+  * If a file is deleted while a <<<read()>>> operation is in progress, the
+    <<<delete()>>> operation SHOULD complete successfully. Implementations MAY cause
+    <<<delete()>>> to fail with an IOException instead.
    
-  * If a file is deleted while a `<<<read()>>>` operation is in progress, the <<<read()>>>
+  * If a file is deleted while a <<<read()>>> operation is in progress, the <<<read()>>>
     operation MAY complete successfully. Implementations MAY cause <<<read()>>>
-    operations to fail with an `IOException` instead.
+    operations to fail with an IOException instead.
   
   * Multiple writers MAY open a file for writing. If this occurs, the outcome
   is undefined
   
-  * Undefined: action of `<<<delete()>>>` while a write or append operation is in
+  * Undefined: action of <<<delete()>>> while a write or append operation is in
     progress
 
 ** Undefined limits
@@ -247,7 +251,7 @@ Apache Hadoop FileSystem Specification
     
     [[1]] Max length of a filename (HDFS: 8000)
     
-    [[1]] <<<`MAX_PATH`>>> - the total length of the entire directory tree referencing a
+    [[1]] <<<MAX_PATH>>> - the total length of the entire directory tree referencing a
     file. Blobstores tend to stop at ~1024 characters
     
     [[1]] max depth of a path (HDFS: 1000 directories)
@@ -275,7 +279,7 @@ Apache Hadoop FileSystem Specification
   
   There are also some implicit assumptions about the overhead of some operations
 
-    [[1]] `<<<seek()>>>` operations are fast and incur little or no network delays. [This 
+    [[1]] <<<seek()>>> operations are fast and incur little or no network delays. [This 
     does not hold on blob stores]
     
     [[1]] Directory list operations are fast for directories with few entries.
@@ -285,7 +289,7 @@ Apache Hadoop FileSystem Specification
     handle the challenge of listing directories with millions of entries without
     buffering.
     
-    [[1]] A `<<<close()>>>` of an `<<<OutputStream>>>` is fast, irrespective of whether or not
+    [[1]] A <<<close()>>> of an <<<OutputStream>>> is fast, irrespective of whether or not
     the file operation has succeeded or not.
     
     [[1]] The time to delete a directory is independent of the size of the number of 
@@ -293,6 +297,16 @@ Apache Hadoop FileSystem Specification
 
   Different filesystems not only have different behavior, under excess load or failure
   conditions a filesystem may behave very differently. 
+
+~~ ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+* Core specification of a Hadoop filesystem
+
+  This section attempts to model the contents a filesystem as a set of paths that 
+  are either directories, symbolic links or files; only files may contain data.
+  
+  The operations that a filesystem supports either examines the paths and
+  reference data, or updates it.
 
 ** Definitions
 
@@ -326,97 +340,663 @@ Apache Hadoop FileSystem Specification
   for a type in the set <<<(integer, long)>>>
   
   <<<parent(P: Path): Path)>>> is a function that returns the parent of a path
+  <<<data(P: Path): byte[])>>> is a function that, for any path
+  where <<<exists(P)>>>, returns the data referenced by that path. If there
+  is no data, an empty array <<<[]>>> is returned.
+ 
+** A Model of Paths, Directories and Files
+ 
+  A <Filesystem>, <FS> contains a finite set of <Path> elements that
+  refer to filesystem entities that MUST include
+  Files and Directories and MAY include symbolic links. Filesystems MAY
+  reference other entities (devices, named pipes, etc.)
   
 
-* Foundational: Operations and failures
+  A Path can be represented as a list of <Path_Elements>. The set
+  of all possible paths is <Paths>
+  
+-----------
 
-    * All operations MUST eventually complete, successfully or unsuccessfully,
-      throw an <<<IOException>>> or subclass thereof.
+  forall P in Paths :- P==[]
+                    || P==[ H | T] where H in Path_Elements && T in Paths.
+-----------
+  
+  The path represented by empty list, <<<[]>>> is the <root path>, and is 
+  notated by the string "/"
+  
+    The function <parent(Path):Path> can be defined recursively
+  
+-----------
 
-    * The time to complete an operation is undefined and may depend on
-    the implementation and on the state of the system.
+  parent([])      ::== nil
+  parent([T])     ::== []
+  parent([H | T]) ::== [H | parent(T)]
+  
+-----------
+  
+  Path elements are non-empty strings. The exact set of valid strings MAY 
+  be specific to a particular filesystem implementation.
+  
+  Path Elements MUST NOT be in ["", ".",  "..", "/"]
 
-    * Operations MAY throw a <<<RuntimeException>>> or subclass thereof.
+  Path Elements MUST NOT contain the strings "/" and ":".
+  
+  Filesystems MAY have other strings that are not permitted in a path element.
+  
+  The last Path Element in a Path is called the filename:
+  
+-----------
 
-    * Operations SHOULD raise all network, remote and high-level problems as
-    an <<<IOException>>> or subclass thereof, and SHOULD NOT raise a
-    <<<RuntimeException>>> for such problems.
+  filename([]) = undefined
+  filename([H]) = H
+  filename([H|T]) = filename(T)
 
-    * Operations SHOULD report failures by way of raised exceptions, rather
-    than specific return codes of an operation.
+-----------
 
-    * In the text, when an exception class is named, such as <<<IOException>>>,
-    the raised exception MAY be an instance of or subclass of the named exception.
-    It MUST NOT be a superclass
+  The childElements of a path D that is a descendent of path P 
+  is the list of path elements in D that follow the path P
+  
+  childElements([],C) = C
+  childElements(P,[]) => error
+  childElements([H|T],[H|T2]) = childelements(T, T2)
+  # the outcome is not defined if the path D is not equal to or
+  # a descendent of path P
+  childElements([H2|T],[H|T2]) where H2 != H ==>  error
+  
 
-    * If an operation is not implemented in a class, the implementation must
-    throw an <<<UnsupportedOperationException>>>
+  
+  A path MAY refer to a directory
+  
+-----------
+
+  exists P in Paths where isDir(P)
+
+-----------
+  
+  A path MAY refer to a file
     
-* File Operations
+-----------
+
+  exists P in Paths where isFile(P)
+
+-----------
+
+  A path MAY refer to a symbolic link
     
-** rename(Path src,Path dest) INCOMPLETE
+-----------
 
-  * The parent directories of a the destination file/directory MUST exist for
-  the rename to succeed.
-  
-  * <<<`rename(P, P)>>>` MUST return true if `<<<isFile(P)>>>` but MUST be a no-op:
-  the file and its attributes are not updated.
-  
-  * `<<<rename(P, P)>>>` MUST be a no-op if `<<<isDirectory(self)>>>`.
-    The return value is undefined.
-    For reference, HDFS returns true. <This is a
-    departure from the behavior of Posix, which requires the operation to
-    return a non-zero status code.>
-  
-  * <<<`rename(Path, Path2)`>>> MUST fail if <<<`!exists(Path)`>>>
+  exists P in Paths where isSymlink(P)
 
-  * <<<`rename(Path, Path2)`>>> MUST fail if
-   <<<`!exists(parent(Path2)) && !isRoot(Path2)>>>
-  
-  * <<<`rename(Path, Path2)>>>` MUST fail if <<<isAncestor(Path, Path2)>>> 
-  
-  * <<<`rename(Path, Path2)>>>` MUST fail if <<<`exists(Path2)`>>> and
-   <<<`isFile(Path2)`>>>.
+-----------
 
-  * <<<`rename(Path, Path2)>>>` MUST fail if <<<isFile(parent(Path2))>>>
+
+  A filesystem contains a finite subset of all possible Paths
   
-  * `<<<rename("/", Path)>>>` MUST fail.
+-----------
+
+  paths(FS) ::= the proper subset of the set of all Paths
+                which exist in the filesystem FS
+
+  P in paths(FS) => exists(FS, P)
+
+-----------  
+
+  The root path, "/" is a directory, and must always exist in a filesystem
+  
+-----------
+
+  
+  isRoot(P) ::= P==[].
+  
+  forall FS in FileSystems : exists(FS,[]) && isDirectory(FS, []).
+  forall FS in FileSystems : exists P in paths(FS) where isRoot(P)
+
+-----------
+
+  A path cannot refer to a file <and> a directory
+    
+-----------
+
+  forall P in paths(FS) : isFile(FS, P) => !isDir(FS, P)
+  forall P in paths(FS) : isFile(FS, P) => !isSymlink(FS, P)
+  
+  forall P in paths(FS) : isDir(FS, P) => !isFile(FS, P)
+  forall P in paths(FS) : isDir(FS, P) => !isSymlink(FS, P)
+  
+  forall P in paths(FS) : isSymlink(FS, P) => !isFile(FS, P)
+  forall P in paths(FS) : isSymlink(FS, P) => !isDir(FS, P)
+  
+-----------
+
+  If a filesystem can contain other reference types, again, these MUST be mutually
+  exclusive.
+  
+  Directories can be paths that have children, that is, there exist other paths
+  in the filesystem whose path begins with a directory. This can be expressed
+  by saying that every path's parent must be a directory.
+  
+
+   
+  It can then be declared that a path has no parent
+  -in which case it is the root directory,
+  or it MUST have a parent that is a directory
+   
+-----------   
+   
+  forall P in paths(FS) : parent(P) == nil || isDir(FS, parent(P))
+  
+-----------
+  
+  Because the parent directories of all directories must themselves satisfy
+  this criterion, it is implicit that only leaf nodes may be files 
+
+  And, because every filesystem contains the root path, every filesystem
+  must contain at least one directory.
+  
+-----------
+
+  exists P in paths(FS) where isDir(FS, P)
+
+-----------
+
+  A directory may have children
+  
+-----------
+
+  children(FS, P) ::= all C in paths(FS) where parent(C) == P
+
+-----------
+
+  There are no duplicate names in the child paths, because all paths are
+  taken from the set of lists of path elements: there can be no duplicate entries
+  in a set, hence no children with duplicate names.
+
+  A path D is a descendent of a path P if it is the direct child of the
+  path P or an ancestor is a direct child of path P
+  
+-----------
+
+  isDescendent(P, D) ::= parent(D) == P where isDescendent(P, parent(D)) 
+  
+-----------
+
+  The descendents of a directory P are all paths in the filesystem whose
+  path begins with the path P -that is their parent is P or an ancestor is P
+
+-----------
+
+  descendents(FS, D) :: all P in paths(FS) where isDescendent(D,P) 
+  
+-----------
+
+  Directories MUST not contain any data
+  
+-----------
+  forall P in paths(FS): isDir(FS, P) => length(FS, P) == 0
+  forall P in paths(FS): isDir(FS, P) => data(FS, P) == []
+-----------
+
+  Symbolic links MUST not contain any data
+  
+-----------
+  forall P in paths(FS): isSymlink(FS, P) => length(FS, P) == 0
+  forall P in paths(FS): isSymlink(FS, P) => data(FS, P) == []
+-----------
+  
+  Files MAY contain data
+
+-----------
+  forall P in paths(FS): isFile(FS, P) => length(FS, P) >= 0
+  forall P in paths(FS): isFile(FS, P) => (D = data(FS, P) && length(D)>=0) 
+-----------
+
+  Not covered: hard links in a filesystem. If a filesystem supports multiple
+  references in paths(FS) to point to the same data, the outcome of operations
+  are undefined.
+
+  This model of a filesystem is sufficient to describe all the filesystem
+  queries and manipulations -excluding metadata and permission operations.
+  The Hadoop <<<FileSystem>>> and <<<FileContext>>> interfaces can be specified
+  in terms of operations that query or change the state of a filesystem.
+  
+
+* org.apache.hadoop.fs.FileSystem
+  
+  All operations that take a Path to this interface MUST support relative paths.
+  In such a case, they must be resolved relative to the working directory
+  defined by <<<setWorkingDirectory()>>>.
+      
+** boolean exists(Path P)
+    
+-----------
+
+  exists(FS, P)
+  
+-----------
+
+** boolean isDirectory(Path P) 
+
+-----------
+
+  exists(FS, P) && isDir(FS, P)
+  
+-----------
+
+** boolean isFile(Path P) 
+
+-----------
+
+  exists(FS, P) && isFile(FS, P)
+  
+-----------
+
+** boolean isSymlink(Path P) 
+
+-----------
+
+  exists(FS, P) && isSymlink(FS, P)
+  
+-----------
+
+** FileStatus getFileStatus(Path P)
+
+  Preconditions
+
+-----------
+  
+  exists(FS, P) || raise FileNotFoundException
+
+-----------
+
+  Postconditions
+
+-----------
+
+    (FS, FileStatus(length(F), isDirectory(F), [metadata], F)) )
+  
+-----------
+
+** boolean mkdirs(Path F, FsPermission Permission )
+
+  Preconditions
+
+-----------
+  
+  isFile(F) => raise IOException
+  isDir(F) => true
+  mkdirs(parent(F))
+  
+-----------
+
+  Postconditions
+
+-----------
+  
+  FS' where (exists(FS', F) && isDir(FS', F))
+  
+-----------
+
+  The probe for the existence and type of a path and directory creation MUST be
+  atomic. The combined operation, including {{mkdirs(parent(F))}} MAY be atomic.
+
+
+** <<<FileSystem.delete(Path P, boolean recursive)>>>
+
+  Preconditions
+
+-----------
+
+
+  # a directory with children and recursive==false cannot be deleted
+  # raise IOException
+  isDir(FS, P) => (recursive || childen(FS, P) == {} )
+
+  
+-----------
+
+  Postconditions
+
+-----------
+
+  #return false if file does not exist; FS state does not change
+  !exists(FS, P) => (FS, false)
+  
+  # a path referring to a file is removed, return value: true
+  isFile(FS, P) => (FS' where (!exists(FS', P)), true)
+
+
+  
+  # deleting an empty root returns true
+  isDir(FS, P) && isRoot(P) && childen(FS, P) == {} 
+    => (FS, true)) 
+
+  # deleting an empty directory that is not will remove the path from the FS
+  isDir(FS, P) && !isRoot(P) && childen(FS, P) == {} 
+    => ((FS' where (!exists(FS', P) && !exists(descendents(FS', P))) , true) 
+
+
+  # deleting a root path with children & recursive==true
+  # removes the path and all descendents
+  
+  isDir(FS, P) && isRoot(P) && recursive  
+    => (FS' where  !exists(descendents(FS', P)), true 
+    
+  # deleting a non-root path with children & recursive==true
+  # removes the path and all descendents
+  
+  isDir(FS, P) && !isRoot(P) && recursive => 
+   ( FS' where (!exists(FS', P) !exists(descendents(FS', P))): not parent(F,P))
+  
+-----------
+
+  * Deleting a file is an atomic action.
+  
+  * Deleting an empty directory is atomic.
+  
+  * A recursive delete of a directory tree SHOULD be atomic. (or MUST?)
+
+
+** <<<FileSystem.rename(Path S, Path D)>>>
+
+  Rename includes the calculation of the destination path. 
+  If the destination exists and is a directory, the final destination
+  of the rename becomes the destination + the filename of the source path.
+  
+  
+  D' = if (isDir(D) && D!=S) then (D :: filename(S)) else D.
+  
+
+  Preconditions
+
+-----------
+
+  #src cannot be root (special case of previous condition)
+  !isRoot(S)
+
+  # src must exist
+  # raise: FileNotFoundException
+  exists(FS, S)
+  
+  
+  #dest cannot be a descendent of src
+  !isDescendent(S, D')
+
+  #dest must be root, or have a parent that exists
+  isRoot(FS, D') || exists(FS, parent(D'))
+  
+  #parent must not be a file 
+  !isFile(FS, parent(D'))
+  
+  # a destination can be a file iff source == dest
+  # raise FileAlreadyExistsException
+  !isFile(FS, D') || S==D'
+  
+  
+-----------
+
+  Postconditions
+
+-----------
+
+  #rename file to self is a no-op, returns true
+  isFile(FS, S) && S==D' => (FS, true) 
+    
+  #renaming a dir to self is no op; return value is not specified
+  # (posix => false, hdfs=> true)
+  isDir(FS, S) && S==D' => (FS, ?)
+  
+  #renaming a file under dir adds file to dest dir, removes
+  #old entry
+  isFile(FS, S) && S!=D' =>
+    FS' where (!exists(FS', S) && isFile(FS', D') && data(FS', D') == data(FS, S))
+  
+  # for a directory the entire tree under S exists under D, while 
+  # S and its descendents do not exist
+  isDir(FS, D) && S!=D' =>
+    FS' where (
+    (!exists(FS', S) 
+      && isDir(FS', D')
+      && forall C in descendents(FS, S) : !exists(FS', C)) 
+      && forall C in descendents(FS, S) where isDir(C):
+        exists C' in paths(FS) where isDir(C') 
+        && childElements(D', C') == childElements(S, C)  
+        && data(FS', C') == data(FS, C))
+      )
+
+-----------
 
 
 *** Notes
 
-    * The behavior of `<<<rename()>>>` on an open file is unspecified.
+    * rename() MUST be atomic
+
+    * The behavior of <<<rename()>>> on an open file is unspecified.
     
     * The return code of renaming a directory to itself is unspecified. 
 
-** <<<`delete(Path path, boolean recursive)`>>>
+
+** `FileSystem.listStatus(Path P, PathFilter Filter)` 
+
+  A <<<PathFilter)>>>) is a predicate function that returns true iff the path P
+ meets the filter's requirements.
+
+  Preconditions
+
+-----------
+
+  #path must exist
+  exists(FS, P) || throw FileNotFoundException
+  
+-----------
+
+  Postconditions
+  
+-----------
+
+  isFile(FS, P) && Filter(P) => [FileStatus(FS, P)]
+  
+  isFile(FS, P) && !Filter(P) => []
+  
+  isDir(FS, P) => [all C in children(FS, P) where Filter(C)==true] 
+  
+-----------
+
+  * After a file is created, all <<<`listStatus()>>>` operations on the file and parent
+    directory MUST find the file.
+  
+  * After a file is deleted, all `<<<listStatus()>>>` operations on the file and parent
+    directory MUST NOT find the file.
+  
+  * By the time the `<<<listStatus()>>>` operation returns to the caller, there
+  is no guarantee that the information contained in the response is current.
+  The details MAY be out of date -including the contents of any directory, the
+  attributes of any files, and the existence of the path supplied. 
 
 
-    * Deleting an empty directory MUST delete the directory and return `true`,
-irrespective of the value of the recursive flag.
+**  getFileBlockLocations(FileStatus F, int S, int L)
 
-    * Deleting a directory with child elements MUST succeed iff `recursive==true`.
-    
-    * Deleting the root path, `/`, MUST, iff `recursive==true`, delete all entries
-    in the filesystem, excluding the `/` entry itself. That is, `exists("/")`
-    must still be true
-    
-    * If the filesystem is empty, deleting the root path, `/`, MUST succeed and
-      MUST have no effect.
-     
-    * Deleting a non-empty root directory, `/`, MUST return false if `recursive==false`.
-    
-    * Deleting a file is an atomic action.
-    
-    * Deleting an empty directory is atomic.
-    
-    * A recursive delete of a directory tree MAY be atomic.
-    
-    * After a delete operation completes successfully, attempts by clients to open
-      the file, query its attributes, or locate it by enumerating the parent
-      directory will fail. (i.e changes are immediately visible and consistent
-      across all clients)
+  Preconditions
 
+-----------
+
+  S >0  && L>=0  ||  throw InvalidArgumentException
+  
+-----------
+
+  Postconditions
+  
+-----------
+
+  F == null => null
+  F !=null && F.getLen() <= S ==>  []
+  
+-----------
+
+  If the filesystem is location aware, it must return the list
+  of block locations where the data in the range S - S+L can be found.
+  
+  If the filesystem is not location aware, it SHOULD return
+
+-----------
+
+      [
+        BlockLocation(["localhost:50010"] ,
+                  ["localhost"],
+                  ["/default/localhost"]
+                   0, F.getLen())
+       ] ;
+
+-----------
+
+  * A bug in Hadoop 1.0.3 means that a topology path of the same number
+  of elements as the cluster topology MUST be provided, hence the 
+  <<"/default/localhost">> path
+  
+  * HDFS throws <<<HadoopIllegalArgumentException>>> for an offset
+  or length <0; as this extends IllegalArgumentException it is valid.
+  
+  * There is no implicit check for the FileStatus referring to a 
+  directory. As FileStatus.getLen() for a directory is 0, it is
+  implictly returning []
+
+
+  REVIEW: MUST throw an `IOException` instance if `path.isDirectory()` is true
+ 
+**  getFileBlockLocations(Path P, int S, int L)
+
+  Preconditions
+
+-----------
+
+  P != null || throw NullPointerException
+  exists(P) || throw FileNotFoundException
+  
+-----------
+
+  Postconditions
+  
+-----------
+
+  return getFileBlockLocations(getStatus(P), S, L)
+  
+  
+-----------
+
+
+**  getDefaultBlockSize(Path P), getDefaultBlockSize();
+
+  Preconditions
+
+-----------
+  
+-----------
+
+  Postconditions
+  
+-----------
+
+  return integer  >= 0 
+  
+-----------
+
+  Although there is no required value for this, as it
+  is used to partition work during job submission, a block size
+  that is too small will result in either too many jobs being submitted
+  for efficient work, or the <<<JobSubmissionClient>>> running out of memory.
+  Any FileSystem that does not break files into block sizes SHOULD
+  return a number for this that results in efficient processing. 
+  (it MAY make this user-configurable)
+
+
+** FSDataOutputStream create(Path f, ...)
+
+-----------
+
+FSDataOutputStream create(Path P,
+      FsPermission permission,
+      boolean overwrite,
+      int bufferSize,
+      short replication,
+      long blockSize,
+      Progressable progress) throws IOException;
+
+-----------
+
+  Preconditions
+
+-----------
+
+    # MUST raise FileAlreadyExistsException, FileNotFoundException
+    ! exists(P) || (overwrite && isFile(P))
+    isDir(parent(P)) || mkdirs(parent(P))
+
+-----------
+
+  Postconditions
+  
+-----------
+
+    FS' where (isFile(P))) 
+  
+-----------
+
+  Return: <<<FSOutputStream>>>, 
+
+  * Filesystems may reject the request for other
+  reasons -such as the FS being read-only  (HDFS), 
+  the block size being below the minimum permitted (HDFS),
+  the replication count being out of range (HDFS),
+  quotas on namespace or filesystem being exceeded, reserved
+  names, ...etc. All rejections SHOULD be IOException or a subclass thereof
+  and MAY be a RuntimeException or subclass. (HDFS: InvalidPathException)
+  
+  * S3N, Swift and other blobstores do not currently change the FS state
+  until the output stream is closed(). This MAY be a bug, as it allows >1
+  client to create a file with overwrite=false
+  
+** FSDataOutputStream append(Path f, int bufferSize, Progressable progress
+
+  Implementations MAY throw {{UnsupportedOperationException}}
+
+  Preconditions
+
+-----------
+
+    exists(P) || throw  FileNotFoundException
+    isFile(P))|| throw  IOException or subclass, including FileNotFoundException
+
+-----------
+
+  Postconditions
+  
+-----------
+  
+-----------
+
+  Return: <<<FSOutputStream>>>, 
+
+** concat(Path f, int bufferSize, Progressable progress
+
+  Implementations MAY throw {{UnsupportedOperationException}}
+
+  Preconditions
+
+-----------
+
+    exists(P) || throw  FileNotFoundException
+    isFile(P))|| throw  IOException or subclass, including FileNotFoundException
+
+-----------
+
+  Postconditions
+  
+-----------
+  
+-----------
+
+  Return: <<<FSOutputStream>>>, 
+
+~~ ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 * InputStream, Seekable and PositionedReadable
 
@@ -555,22 +1135,23 @@ public interface Seekable {
       to the byte at position <<<P>>> in the file,
      and <<<S.getPos()>>> MUST equal <<<P+1>>>
      
-    [[1]] `<<<S.seekToNewSource(Pos)>>> SHOULD return false if the
+    [[1]] <<<S.seekToNewSource(Pos)>>> SHOULD return false if the
     filesystem does not implement multiple-data sources for files.
     
-    [[1]] After `<<<S.seekToNewSource(Pos)>>> the value of <<<S.getPos()>>>
+    [[1]] After <<<S.seekToNewSource(Pos)>>> the value of <<<S.getPos()>>>
     MUST be unchanged
     
 
-* Irrespective of whether or a `seekToNewSource()` operation succeeds or fails,
-the stream's `getPos()` value MUST be the value which it was before the seek
-operation was invoked. Specifically, it is not a `seek()` operation, it is a
+  Irrespective of whether or a seekToNewSource() operation succeeds or fails,
+the stream's getPos() value MUST be the value which it was before the seek
+operation was invoked. Specifically, it is not a seek() operation, it is a
 request to bind to a new location of data in expectation of a read or seek
 operation fetching the new data.
 
 * PositionedReadable
 
 -------------
+
 public interface PositionedReadable {
   public int read(long position, byte[] buffer, int offset, int length)
     throws IOException;
@@ -578,12 +1159,14 @@ public interface PositionedReadable {
     throws IOException;
   public void readFully(long position, byte[] buffer) throws IOException;
 }
+
 -------------
 
     [[1]] The result <R> of <<<S.read(Pos, Buffer, Offset, Len )>>> MUST be identical
     to the sequence
 
 -----------
+
   P0 = S.getPos()
   try {
     S.seek(Pos)
@@ -591,6 +1174,7 @@ public interface PositionedReadable {
   } finally {
     S.seek(P0)
   }
+  
 -----------
   
     [[1]] Degenerate case: The outcome of <<<S.read(S.getPos()), Buffer, Offset, Len )>>>
@@ -608,5 +1192,31 @@ public interface PositionedReadable {
     to <<<S.readFully(Pos, Buffer, 0, Buffer.length )>>>
     
   
+~~ ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
+
+* Operations and failures
+
+    * All operations MUST eventually complete, successfully or unsuccessfully,
+      throw an <<<IOException>>> or subclass thereof.
+
+    * The time to complete an operation is undefined and may depend on
+    the implementation and on the state of the system.
+
+    * Operations MAY throw a <<<RuntimeException>>> or subclass thereof.
+
+    * Operations SHOULD raise all network, remote and high-level problems as
+    an <<<IOException>>> or subclass thereof, and SHOULD NOT raise a
+    <<<RuntimeException>>> for such problems.
+
+    * Operations SHOULD report failures by way of raised exceptions, rather
+    than specific return codes of an operation.
+
+    * In the text, when an exception class is named, such as <<<IOException>>>,
+    the raised exception MAY be an instance of or subclass of the named exception.
+    It MUST NOT be a superclass
+
+    * If an operation is not implemented in a class, the implementation must
+    throw an <<<UnsupportedOperationException>>>
+    
 
