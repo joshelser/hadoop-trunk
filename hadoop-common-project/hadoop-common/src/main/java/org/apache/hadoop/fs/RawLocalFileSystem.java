@@ -20,6 +20,7 @@ package org.apache.hadoop.fs;
 
 import java.io.BufferedOutputStream;
 import java.io.DataOutput;
+import java.io.EOFException;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
@@ -129,6 +130,9 @@ public class RawLocalFileSystem extends FileSystem {
     
     @Override
     public void seek(long pos) throws IOException {
+      if (pos < 0) {
+        throw new EOFException("Cannot seek to a negative position");
+      }
       fis.getChannel().position(pos);
       this.position = pos;
     }

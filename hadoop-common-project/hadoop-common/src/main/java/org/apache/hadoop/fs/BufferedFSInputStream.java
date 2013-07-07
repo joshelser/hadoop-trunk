@@ -18,6 +18,7 @@
 package org.apache.hadoop.fs;
 
 import java.io.BufferedInputStream;
+import java.io.EOFException;
 import java.io.FileDescriptor;
 import java.io.IOException;
 
@@ -67,7 +68,7 @@ implements Seekable, PositionedReadable, HasFileDescriptor {
   @Override
   public void seek(long pos) throws IOException {
     if( pos<0 ) {
-      return;
+      throw new EOFException("Cannot seek to a negative position");
     }
     if (this.pos != this.count) {
       // optimize: check if the pos is in the buffer

@@ -17,6 +17,7 @@
  */
 package org.apache.hadoop.fs;
 
+import java.io.EOFException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.zip.Checksum;
@@ -395,7 +396,7 @@ abstract public class FSInputChecker extends FSInputStream {
   @Override
   public synchronized void seek(long pos) throws IOException {
     if( pos<0 ) {
-      return;
+      throw new EOFException("Cannot seek to a negative position");
     }
     // optimize: check if the pos is in the buffer
     long start = chunkPos - this.count;
