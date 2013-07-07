@@ -742,7 +742,7 @@ Apache Hadoop FileSystem Specification
 
 ** FileSystem.listStatus(Path P, PathFilter Filter) 
 
-  A <<<PathFilter)>>>) is a predicate function that returns true iff the path P
+  A <<<PathFilter)>>> is a predicate function that returns true iff the path P
  meets the filter's requirements.
 
   Preconditions
@@ -762,7 +762,7 @@ Apache Hadoop FileSystem Specification
   
   isFile(FS, P) && !Filter(P) => []
   
-  isDir(FS, P) => [all C in children(FS, P) where Filter(C)==true] 
+  isDir(FS, P) => [all C in children(FS, P) where Filter(C) == true] 
   
 -----------
 
@@ -784,7 +784,7 @@ Apache Hadoop FileSystem Specification
 
 -----------
 
-  S >0  && L>=0  ||  throw InvalidArgumentException
+  S > 0  && L >= 0  ||  throw InvalidArgumentException
   
 -----------
 
