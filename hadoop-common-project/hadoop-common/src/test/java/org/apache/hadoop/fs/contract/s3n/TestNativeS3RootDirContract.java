@@ -19,13 +19,14 @@
 package org.apache.hadoop.fs.contract.s3n;
 
 import org.apache.hadoop.conf.Configuration;
-import org.apache.hadoop.fs.contract.AbstractDirectoryContractTest;
 import org.apache.hadoop.fs.contract.AbstractFSContract;
+import org.apache.hadoop.fs.contract.AbstractRootDirectoryContractTest;
 
 /**
- * Test dir operations on a the local FS.
+ * root dir operations against an S3 bucket
  */
-public class TestNativeS3RootDirContract extends AbstractDirectoryContractTest {
+public class TestNativeS3RootDirContract extends
+                                         AbstractRootDirectoryContractTest {
 
   @Override
   protected AbstractFSContract createContract(Configuration conf) {

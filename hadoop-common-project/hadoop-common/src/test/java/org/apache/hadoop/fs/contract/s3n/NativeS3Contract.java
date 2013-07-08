@@ -34,7 +34,7 @@ public class NativeS3Contract extends AbstractFSContract {
 
   public static final String CONTRACT_XML = "contract/s3n.xml";
   /**
-   * 
+   *
    */
   public static final String TEST_FS_S3N_NAME = "test.fs.s3n.name";
   private String fsName;
@@ -52,15 +52,20 @@ public class NativeS3Contract extends AbstractFSContract {
     super.init();
     //this test is only enabled if the test FS is present
     fsName = getConf().get(TEST_FS_S3N_NAME);
-    boolean enabled = fsName != null && !fsName.isEmpty();
+    boolean enabled = fsName != null
+                      && !fsName.isEmpty()
+                      && !fsName.equals("s3n:///");
     setEnabled(enabled);
     if (enabled) {
       try {
         fsURI = new URI(fsName);
         s3nFS = FileSystem.get(fsURI, getConf());
       } catch (URISyntaxException e) {
-        throw new IOException("Invalid URI "+ fsName
+        throw new IOException("Invalid URI " + fsName
                               + " for config option " + TEST_FS_S3N_NAME);
+      } catch (IllegalArgumentException e) {
+        throw new IOException("Invalid S3N URI " + fsName
+                              + " for config option " + TEST_FS_S3N_NAME, e);
       }
     }
   }

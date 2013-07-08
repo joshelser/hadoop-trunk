@@ -23,7 +23,17 @@
   -->
 
   <property>
-    <name>fs.s3n.contract.root-tests-enabled</name>
+    <name>fs.s3n.contract.test.root-tests-enabled</name>
+    <value>true</value>
+  </property>
+
+  <property>
+    <name>fs.s3n.contract.test.random-seek-count</name>
+    <value>10</value>
+  </property>
+
+  <property>
+    <name>fs.s3n.contract.is-blobstore</name>
     <value>true</value>
   </property>
 
@@ -55,6 +65,11 @@
   <property>
     <name>fs.s3n.contract.supports-concat</name>
     <value>false</value>
+  </property>
+
+  <property>
+    <name>fs.s3n.contract.supports-seek</name>
+    <value>true</value>
   </property>
 
   <property>
