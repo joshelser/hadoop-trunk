@@ -66,6 +66,12 @@ public interface ContractOptions {
   String SUPPORTS_CONTAT = "supports-concat";
 
   /**
+   * Is seeking supported at all?
+   * @{value}
+   */
+  String SUPPORTS_SEEK = "supports-seek";
+
+  /**
    * Is seeking past the EOF supported? Some filesystems only raise an
    * exception later, when trying to read.
    * @{value}
@@ -92,5 +98,12 @@ public interface ContractOptions {
   /**
    * @{value}
    */
-  String ROOT_TESTS_ENABLED = "root-tests-enabled";
+  String TEST_ROOT_TESTS_ENABLED = "test.root-tests-enabled";
+
+  /**
+   * Limit for #of random seeks to perform.
+   * Keep low for remote filesystems for faster tests
+   */
+  String TEST_RANDOM_SEEK_COUNT = "test.random-seek-count";
+
 }

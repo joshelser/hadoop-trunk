@@ -40,7 +40,7 @@ import java.net.URL;
  * and limit filesize and other numeric variables for scale tests
  */
 public abstract class AbstractFSContract extends Configured {
-  protected boolean enabled = true;
+  private boolean enabled = true;
 
   protected AbstractFSContract(Configuration conf) {
     super(conf);

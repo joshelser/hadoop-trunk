@@ -18,6 +18,8 @@
 
 package org.apache.hadoop.fs.contract;
 
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FileStatus;
 import org.apache.hadoop.fs.FileSystem;
@@ -36,6 +38,9 @@ import java.io.IOException;
  */
 public abstract class AbstractFSContractTestBase extends Assert
   implements ContractOptions {
+  
+  private static final Log LOG = 
+    LogFactory.getLog(AbstractFSContractTestBase.class);
 
   public static final int TEST_FILE_LEN = 1024;
   /**
@@ -78,9 +83,19 @@ public abstract class AbstractFSContractTestBase extends Assert
    * @throws IOException IO problem
    */
   protected void skipIfUnsupported(String feature) throws IOException {
-    if (!contract.isSupported(feature, false)) {
+    if (!isSupported(feature)) {
       skip("Skipping as unsupported feature: " + feature);
     }
+  }
+
+  /**
+   * Is a feature supported?
+   * @param feature feature
+   * @return true iff the feature is supported
+   * @throws IOException IO problems
+   */
+  protected boolean isSupported(String feature) throws IOException {
+    return contract.isSupported(feature, false);
   }
 
   /**
@@ -155,6 +170,31 @@ public abstract class AbstractFSContractTestBase extends Assert
    */
   protected String ls(Path path) throws IOException {
     return ContractTestUtils.ls(fileSystem, path);
+  }
+
+  /**
+   * Describe a test. This is a replacement for javadocs
+   * where the tests role is printed in the log output
+   * @param text description
+   */
+  protected void describe(String text) {
+    LOG.info(text);
+  }
+
+  /**
+   * Handle the outcome of an operation not being the strictest
+   * exception desired, but one that, while still within the boundary
+   * of the contract, is a bit looser. 
+   *
+   * @param action Action
+   * @param expectedException what was expected
+   * @param e exception that was received
+   */
+  protected void handleRelaxedException(String action,
+                                        String expectedException,
+                                        Exception e) {
+    LOG.warn("an " + expectedException + " was not the exception class" +
+             " raised on " + action + ": " + e.getClass(), e);
   }
 
   /**

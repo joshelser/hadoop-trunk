@@ -321,8 +321,8 @@ Apache Hadoop FileSystem Specification
   
 -----------
 
-  forall P in Paths :- P==[]
-                    || P==[ H | T] where H in Path_Elements && T in Paths.
+  forall P in Paths :- P == []
+                    || P == [ H | T] where H in Path_Elements && T in Paths.
 -----------
   
   The path represented by empty list, <<<[]>>> is the <root path>, and is 
@@ -612,7 +612,7 @@ Apache Hadoop FileSystem Specification
 -----------
 
 
-  # a directory with children and recursive==false cannot be deleted
+  # a directory with children and recursive == false cannot be deleted
   # raise IOException
   isDir(FS, P) => (recursive || childen(FS, P) == {} )
 
@@ -635,7 +635,7 @@ Apache Hadoop FileSystem Specification
   isDir(FS, P) && isRoot(P) && childen(FS, P) == {} 
     => (FS, true)) 
 
-  # deleting an empty directory that is not will remove the path from the FS
+  # deleting an empty directory that is not root will remove the path from the FS
   isDir(FS, P) && !isRoot(P) && childen(FS, P) == {} 
     => ((FS' where (!exists(FS', P) && !exists(descendents(FS', P))) , true) 
 
@@ -742,8 +742,8 @@ Apache Hadoop FileSystem Specification
 
 ** FileSystem.listStatus(Path P, PathFilter Filter) 
 
-  A <<<PathFilter)>>> is a predicate function that returns true iff the path P
- meets the filter's requirements.
+  A <<<PathFilter>>> is a predicate function that returns true iff the path P
+ meets the filter's conditions``.
 
   Preconditions
 
@@ -892,6 +892,15 @@ FSDataOutputStream create(Path P,
 
 -----------
 
+  #file must not exist for a no-overwrite create
+  !overwrite && isFile(FS, P)  => raise FileAlreadyExistsException
+  #it must not be a directory either; exception is the same
+  !overwrite && isDir(FS, P)  => raise FileAlreadyExistsException
+      
+  #overwriting a directory?    
+  isDir(FS,P) =>
+  
+  
     # MUST raise FileAlreadyExistsException, FileNotFoundException
     ! exists(FS, P) || (overwrite && isFile(FS, P))
     isDir(FS, parent(P)) || mkdirs(parent(P))

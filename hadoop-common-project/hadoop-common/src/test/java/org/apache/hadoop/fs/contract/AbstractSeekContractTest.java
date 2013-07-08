@@ -20,6 +20,8 @@ package org.apache.hadoop.fs.contract;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.apache.hadoop.conf.Configuration;
+import org.apache.hadoop.fs.CommonConfigurationKeysPublic;
 import org.apache.hadoop.fs.FSDataInputStream;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.io.IOUtils;
@@ -27,6 +29,7 @@ import org.junit.Test;
 
 import java.io.EOFException;
 import java.io.IOException;
+import java.util.Random;
 
 import static org.apache.hadoop.fs.contract.ContractTestUtils.*;
 
@@ -36,6 +39,7 @@ import static org.apache.hadoop.fs.contract.ContractTestUtils.*;
 public abstract class AbstractSeekContractTest extends AbstractFSContractTestBase {
   protected static final Log LOG =
     LogFactory.getLog(AbstractSeekContractTest.class);
+  public static final int DEFAULT_RANDOM_SEEK_COUNT = 100;
 
   private Path testPath;
   private Path smallSeekFile;
@@ -45,14 +49,22 @@ public abstract class AbstractSeekContractTest extends AbstractFSContractTestBas
   @Override
   public void setup() throws Exception {
     super.setup();
+    skipIfUnsupported(SUPPORTS_SEEK);
     //delete the test directory
     testPath = path("test");
     smallSeekFile = new Path(testPath, "seekfile.txt");
     zeroByteFile = new Path(testPath, "zero.txt");
     byte[] block = dataset(TEST_FILE_LEN, 0, 255);
     //this file now has a simple rule: offset => value
-    createFile(getFileSystem(),smallSeekFile, false, block);
+    createFile(getFileSystem(), smallSeekFile, false, block);
     touch(getFileSystem(), zeroByteFile);
+  }
+
+  @Override
+  protected Configuration createConfiguration() {
+    Configuration conf = super.createConfiguration();
+    conf.setInt(CommonConfigurationKeysPublic.IO_FILE_BUFFER_SIZE_KEY, 4096);
+    return conf;
   }
 
   @Override
@@ -65,6 +77,7 @@ public abstract class AbstractSeekContractTest extends AbstractFSContractTestBas
 
   @Test
   public void testSeekZeroByteFile() throws Throwable {
+    describe("seek and read a 0 byte file");
     instream = getFileSystem().open(zeroByteFile);
     assertEquals(0, instream.getPos());
     //expect initial read to fai;
@@ -82,6 +95,7 @@ public abstract class AbstractSeekContractTest extends AbstractFSContractTestBas
 
   @Test
   public void testBlockReadZeroByteFile() throws Throwable {
+    describe("do a block read on a 0 byte file");
     instream = getFileSystem().open(zeroByteFile);
     assertEquals(0, instream.getPos());
     //expect that seek to 0 works
@@ -126,14 +140,18 @@ public abstract class AbstractSeekContractTest extends AbstractFSContractTestBas
       int result = instream.read();
       fail(
         "expected an exception, got data " + result + " at a position of " + p);
-    } catch (IOException e) {
+    } catch (EOFException e) {
       //bad seek -expected
+    } catch (IOException e) {
+      //bad seek -expected, but not as preferred as an EOFException
+      handleRelaxedException("a negative seek", "EOFException", e);
     }
     assertEquals(0, instream.getPos());
   }
 
   @Test
   public void testSeekFile() throws Throwable {
+    describe("basic seek operations");
     instream = getFileSystem().open(smallSeekFile);
     assertEquals(0, instream.getPos());
     //expect that seek to 0 works
@@ -153,6 +171,7 @@ public abstract class AbstractSeekContractTest extends AbstractFSContractTestBas
 
   @Test
   public void testSeekAndReadPastEndOfFile() throws Throwable {
+    describe("verify that reading past the last bytes in the file returns -1");
     instream = getFileSystem().open(smallSeekFile);
     assertEquals(0, instream.getPos());
     //expect that seek to 0 works
@@ -164,23 +183,46 @@ public abstract class AbstractSeekContractTest extends AbstractFSContractTestBas
   }
 
   @Test
-  public void testSeekAndPastEndOfFileThenReseekAndRead() throws Throwable {
+  public void testSeekPastEndOfFileThenReseekAndRead() throws Throwable {
+    describe("do a seek past the EOF, then verify the stream recovers");
     instream = getFileSystem().open(smallSeekFile);
     //go just before the end. This may or may not fail; it may be delayed until the
     //read
+    boolean canSeekPastEOF =
+      isSupported(ContractOptions.SUPPORTS_SEEK_PAST_EOF);
     try {
       instream.seek(TEST_FILE_LEN);
+      if (!canSeekPastEOF) {
+        fail("seek succeeded on a closed stream");
+      }
       //if this doesn't trigger, then read() is expected to fail
       assertMinusOne("read after seeking past EOF", instream.read());
-    } catch (EOFException expected) {
-      //here an exception was raised in seek
+    } catch (EOFException e) {
+      //This is an error iff the FS claims to be able to seek past the EOF
+      if (canSeekPastEOF) {
+        //a failure wasn't expected
+        throw e;
+      }
+    } catch (IOException e) {
+      //This is an error iff the FS claims to be able to seek past the EOF
+      if (canSeekPastEOF) {
+        //a failure wasn't expected
+        throw e;
+      }
+      handleRelaxedException("a seek past the end of the file", "EOFException", e);
     }
+    //now go back and try to read from a valid point in the file
     instream.seek(1);
     assertTrue("Premature EOF", instream.read() != -1);
   }
 
+  /**
+   * Seek round a file bigger than IO buffers
+   * @throws Throwable
+   */
   @Test
   public void testSeekBigFile() throws Throwable {
+    describe("Seek round a large file and verify the bytes are what is expected");
     Path testSeekFile = new Path(testPath, "bigseekfile.txt");
     byte[] block = dataset(65536, 0, 255);
     createFile(getFileSystem(), testSeekFile, false, block);
@@ -206,6 +248,7 @@ public abstract class AbstractSeekContractTest extends AbstractFSContractTestBas
 
   @Test
   public void testPositionedBulkReadDoesntChangePosition() throws Throwable {
+    describe("verify that a positioned read does not change the getPos() value");
     Path testSeekFile = new Path(testPath, "bigseekfile.txt");
     byte[] block = dataset(65536, 0, 255);
     createFile(getFileSystem(), testSeekFile, false, block);
@@ -223,6 +266,49 @@ public abstract class AbstractSeekContractTest extends AbstractFSContractTestBas
     //now verify the picked up data
     for (int i = 0; i < 256; i++) {
       assertEquals("@" + i, block[i + 128], readBuffer[i]);
+    }
+  }
+
+  /**
+   * Lifted from TestLocalFileSystem:
+   * Regression test for HADOOP-9307: BufferedFSInputStream returning
+   * wrong results after certain sequences of seeks and reads.
+   */
+  @Test
+  public void testRandomSeeks() throws Throwable {
+    int limit = getContract().getLimit(TEST_RANDOM_SEEK_COUNT,
+                                       DEFAULT_RANDOM_SEEK_COUNT);
+    describe("Testing " + limit + " random seeks");
+    int filesize = 10 * 1024;
+    byte[] buf = dataset(filesize, 0, 255);
+    Path randomSeekFile = new Path(testPath, "testrandomseeks.bin");
+    createFile(getFileSystem(), randomSeekFile, false, buf);
+    Random r = new Random();
+    FSDataInputStream stm = getFileSystem().open(randomSeekFile);
+
+    // Record the sequence of seeks and reads which trigger a failure.
+    int seeks[] = new int[10];
+    int reads[] = new int[10];
+    try {
+      for (int i = 0; i < limit; i++) {
+        int seekOff = r.nextInt(buf.length);
+        int toRead = r.nextInt(Math.min(buf.length - seekOff, 32000));
+
+        seeks[i % seeks.length] = seekOff;
+        reads[i % reads.length] = toRead;
+        verifyRead(stm, buf, seekOff, toRead);
+      }
+    } catch (AssertionError afe) {
+      StringBuilder sb = new StringBuilder();
+      sb.append("Sequence of actions:\n");
+      for (int j = 0; j < seeks.length; j++) {
+        sb.append("seek @ ").append(seeks[j]).append("  ")
+          .append("read ").append(reads[j]).append("\n");
+      }
+      LOG.error(sb.toString());
+      throw afe;
+    } finally {
+      stm.close();
     }
   }
 

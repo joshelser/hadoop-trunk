@@ -22,6 +22,9 @@ import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
 import org.junit.Test;
 
+import static org.apache.hadoop.fs.contract.ContractTestUtils.createFile;
+import static org.apache.hadoop.fs.contract.ContractTestUtils.dataset;
+
 /**
  * Test directory operations
  */
@@ -40,13 +43,30 @@ public abstract class AbstractDirectoryContractTest extends AbstractFSContractTe
 
   @Test
   public void testMkDirRmRfDir() throws Throwable {
+    describe("crete a directory then recursive delete it");
     FileSystem fs = getFileSystem();
-    
     Path dir = path("testMkDirRmRfDir");
     assertPathDoesNotExist("directory already exists", dir);
     fs.mkdirs(dir);
     assertPathExists("mkdir failed", dir);
     assertDeleted(dir, true);
   }
-  
+
+  @Test
+  public void testNoMkdirOverFile() throws Throwable {
+    describe("try to mkdir over a file");
+    FileSystem fs = getFileSystem();
+    Path path = path("testNoMkdirOverFile");
+    byte[] dataset = dataset(1024, ' ', 'z');
+    createFile(getFileSystem(), path, false, dataset);
+    boolean made = fs.mkdirs(path);
+    assertFalse("mkdirs succeeded over a file" + ls(path), made);
+    assertIsFile(path);
+    byte[] bytes = ContractTestUtils.readDataset(getFileSystem(), path,
+                                                 dataset.length);
+    ContractTestUtils.compareByteArrays(dataset, bytes, dataset.length);
+    assertPathExists("mkdir failed", path);
+    assertDeleted(path, true);
+
+  }
 }

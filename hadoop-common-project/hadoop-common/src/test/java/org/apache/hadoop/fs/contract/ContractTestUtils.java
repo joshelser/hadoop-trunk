@@ -25,11 +25,13 @@ import org.apache.hadoop.fs.FSDataOutputStream;
 import org.apache.hadoop.fs.FileStatus;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
+import org.apache.hadoop.util.StringUtils;
 import org.junit.Assert;
 import org.junit.internal.AssumptionViolatedException;
 
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.util.Arrays;
 import java.util.Properties;
 
 /**
@@ -157,20 +159,40 @@ public class ContractTestUtils extends Assert {
   }
 
   /**
-   * Assert that tthe array src[0..len] and dest[] are equal
-   * @param src source data
-   * @param dest actual
+   * Verify that the read at a specific offset in a stream
+   * matches that expected
+   * @param stm stream
+   * @param fileContents original file contents
+   * @param seekOff seek offset
+   * @param toRead number of bytes to read
+   * @throws IOException IO problems
+   */
+  public static void verifyRead(FSDataInputStream stm, byte[] fileContents,
+                                int seekOff, int toRead) throws IOException {
+    byte[] out = new byte[toRead];
+    stm.seek(seekOff);
+    stm.readFully(out);
+    byte[] expected = Arrays.copyOfRange(fileContents, seekOff,
+                                         seekOff + toRead);
+    compareByteArrays(expected, out,toRead);
+  }
+  /**
+   * Assert that tthe array original[0..len] and received[] are equal.
+   * A failure triggers the logging of the bytes near where the first
+   * difference surfaces.
+   * @param original source data
+   * @param received actual
    * @param len length of bytes to compare
    */
-  public static void compareByteArrays(byte[] src,
-                                       byte[] dest,
+  public static void compareByteArrays(byte[] original,
+                                       byte[] received,
                                        int len) {
     assertEquals("Number of bytes read != number written",
-                        len, dest.length);
+                        len, received.length);
     int errors = 0;
     int first_error_byte = -1;
     for (int i = 0; i < len; i++) {
-      if (src[i] != dest[i]) {
+      if (original[i] != received[i]) {
         if (errors == 0) {
           first_error_byte = i;
         }
@@ -188,8 +210,8 @@ public class ContractTestUtils extends Assert {
       for (int i = Math.max(0, first_error_byte - overlap);
            i < Math.min(first_error_byte + overlap, len);
            i++) {
-        byte actual = dest[i];
-        byte expected = src[i];
+        byte actual = received[i];
+        byte expected = original[i];
         String letter = toChar(actual);
         String line = String.format("[%04d] %2x %s\n", i, actual, letter);
         if (expected != actual) {
@@ -582,7 +604,7 @@ public class ContractTestUtils extends Assert {
   //
 
   /**
-   * compare content
+   * compare content of concatenated operations
    * @param concat concatenated files
    * @param bytes bytes
    */
@@ -604,4 +626,5 @@ public class ContractTestUtils extends Assert {
                 mismatch);
   }
 
+ 
 }
