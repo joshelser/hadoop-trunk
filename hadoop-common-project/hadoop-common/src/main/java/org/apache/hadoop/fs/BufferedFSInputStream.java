@@ -67,7 +67,10 @@ implements Seekable, PositionedReadable, HasFileDescriptor {
 
   @Override
   public void seek(long pos) throws IOException {
-    if( pos<0 ) {
+    if (in == null) {
+      throw new IOException("Stream is closed");
+    }
+    if (pos < 0) {
       throw new EOFException("Cannot seek to a negative position");
     }
     if (this.pos != this.count) {
