@@ -22,8 +22,14 @@
   -->
 
   <property>
-    <name>fs.hdfs.contract.root-tests-enabled</name>
+    <name>fs.hdfs.contract.test.root-tests-enabled</name>
     <value>true</value>
+  </property>
+
+
+  <property>
+    <name>fs.file.contract.test.random-seek-count</name>
+    <value>500</value>
   </property>
 
   <property>
@@ -53,6 +59,11 @@
 
   <property>
     <name>fs.hdfs.contract.supports-concat</name>
+    <value>true</value>
+  </property>
+
+  <property>
+    <name>fs.hdfs.contract.supports-seek</name>
     <value>true</value>
   </property>
 
