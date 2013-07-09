@@ -278,7 +278,7 @@ public class RawLocalFileSystem extends FileSystem {
       boolean createParent, int bufferSize, short replication, long blockSize,
       Progressable progress) throws IOException {
     if (exists(f) && !overwrite) {
-      throw new IOException("File already exists: "+f);
+      throw new FileAlreadyExistsException("File already exists: "+f);
     }
     Path parent = f.getParent();
     if (parent != null && !mkdirs(parent)) {
@@ -294,7 +294,7 @@ public class RawLocalFileSystem extends FileSystem {
       EnumSet<CreateFlag> flags, int bufferSize, short replication, long blockSize,
       Progressable progress) throws IOException {
     if (exists(f) && !flags.contains(CreateFlag.OVERWRITE)) {
-      throw new IOException("File already exists: "+f);
+      throw new FileAlreadyExistsException("File already exists: "+f);
     }
     return new FSDataOutputStream(new BufferedOutputStream(
         new LocalFSFileOutputStream(f, false), bufferSize), statistics);

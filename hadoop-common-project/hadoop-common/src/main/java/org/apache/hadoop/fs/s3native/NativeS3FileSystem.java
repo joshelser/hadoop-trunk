@@ -46,6 +46,7 @@ import org.apache.hadoop.fs.BufferedFSInputStream;
 import org.apache.hadoop.fs.FSDataInputStream;
 import org.apache.hadoop.fs.FSDataOutputStream;
 import org.apache.hadoop.fs.FSInputStream;
+import org.apache.hadoop.fs.FileAlreadyExistsException;
 import org.apache.hadoop.fs.FileStatus;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
@@ -339,7 +340,7 @@ public class NativeS3FileSystem extends FileSystem {
       Progressable progress) throws IOException {
 
     if (exists(f) && !overwrite) {
-      throw new IOException("File already exists:"+f);
+      throw new FileAlreadyExistsException("File already exists:" + f);
     }
     
     if(LOG.isDebugEnabled()) {

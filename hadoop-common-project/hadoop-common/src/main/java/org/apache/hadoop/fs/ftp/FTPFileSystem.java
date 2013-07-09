@@ -223,7 +223,7 @@ public class FTPFileSystem extends FileSystem {
         delete(client, file);
       } else {
         disconnect(client);
-        throw new IOException("File already exists: " + file);
+        throw new FileAlreadyExistsException("File already exists: " + file);
       }
     }
     
@@ -548,10 +548,10 @@ public class FTPFileSystem extends FileSystem {
     Path absoluteSrc = makeAbsolute(workDir, src);
     Path absoluteDst = makeAbsolute(workDir, dst);
     if (!exists(client, absoluteSrc)) {
-      throw new IOException("Source path " + src + " does not exist");
+      throw new FileNotFoundException("Source path " + src + " does not exist");
     }
     if (exists(client, absoluteDst)) {
-      throw new IOException("Destination path " + dst
+      throw new FileAlreadyExistsException("Destination path " + dst
           + " already exist, cannot rename!");
     }
     String parentSrc = absoluteSrc.getParent().toUri().toString();
