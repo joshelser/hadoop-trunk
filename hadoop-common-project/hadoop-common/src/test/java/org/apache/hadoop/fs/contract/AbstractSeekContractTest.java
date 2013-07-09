@@ -191,10 +191,7 @@ public abstract class AbstractSeekContractTest extends AbstractFSContractTestBas
     boolean canSeekPastEOF =
       isSupported(ContractOptions.SUPPORTS_SEEK_PAST_EOF);
     try {
-      instream.seek(TEST_FILE_LEN);
-      if (!canSeekPastEOF) {
-        fail("seek succeeded on a closed stream");
-      }
+      instream.seek(TEST_FILE_LEN+1);
       //if this doesn't trigger, then read() is expected to fail
       assertMinusOne("read after seeking past EOF", instream.read());
     } catch (EOFException e) {
