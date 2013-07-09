@@ -80,6 +80,7 @@ public abstract class AbstractRootDirectoryContractTest extends AbstractFSContra
            " but completed with exit code " + deleted);
     } catch (IOException e) {
       //expected
+      handleExpectedException(e);
     }
     ContractTestUtils.assertIsDirectory(getFileSystem(), root);
   }
@@ -107,6 +108,7 @@ public abstract class AbstractRootDirectoryContractTest extends AbstractFSContra
       fail("expected an exception, got a file created over root: " + ls(root));
     } catch (IOException e) {
       //expected
+      handleExpectedException(e);
     }
     assertIsDirectory(root);
   }

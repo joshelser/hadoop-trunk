@@ -66,6 +66,7 @@ public abstract class AbstractDirectoryContractTest extends AbstractFSContractTe
       assertFalse("mkdirs succeeded over a file" + ls(path), made);
     } catch (IOException e) {
       //here the FS says "no create"  
+      handleExpectedException(e);
     }
     assertIsFile(path);
     byte[] bytes = ContractTestUtils.readDataset(getFileSystem(), path,

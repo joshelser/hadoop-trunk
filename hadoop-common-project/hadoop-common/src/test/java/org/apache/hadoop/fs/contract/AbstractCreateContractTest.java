@@ -39,7 +39,6 @@ public abstract class AbstractCreateContractTest extends
   public void testCreateNewFile() throws Throwable {
     describe("Foundational 'create a file' test");
     Path path = path("testCreateNewFile");
-    getFileSystem().delete(path, true);
     byte[] data = dataset(256, 'a', 'z');
     writeDataset(getFileSystem(), path, data, data.length, 1024 * 1024, false);
     ContractTestUtils.verifyFileContents(getFileSystem(), path, data);
@@ -49,7 +48,6 @@ public abstract class AbstractCreateContractTest extends
   public void testCreateFileOverExistingFileNoOverwrite() throws Throwable {
     describe("Verify overwriting an existing file fails");
     Path path = path("testCreateFileOverExistingFileNoOverwrite");
-    getFileSystem().delete(path, true);
     byte[] data = dataset(256, 'a', 'z');
     writeDataset(getFileSystem(), path, data, data.length, 1024, false);
     byte[] data2 = dataset(10 * 1024, 'A', 'Z');
@@ -71,7 +69,6 @@ public abstract class AbstractCreateContractTest extends
   public void testOverwriteExistingFile() throws Throwable {
     describe("Overwrite an existing file and verify the new data is there");
     Path path = path("testOverwriteExistingFile");
-    getFileSystem().delete(path, true);
     byte[] data = dataset(256, 'a', 'z');
     writeDataset(getFileSystem(), path, data, data.length, 1024, false);
     ContractTestUtils.verifyFileContents(getFileSystem(), path, data);
@@ -84,7 +81,6 @@ public abstract class AbstractCreateContractTest extends
   public void testOverwriteEmptyDirectory() throws Throwable {
     describe("verify trying to create a file over an empty dir fails");
     Path path = path("testOverwriteEmptyDirectory");
-    getFileSystem().delete(path, true);
     mkdirs(path);
     assertIsDirectory(path);
     byte[] data = dataset(256, 'a', 'z');
@@ -110,7 +106,6 @@ public abstract class AbstractCreateContractTest extends
   public void testOverwriteNonEmptyDirectory() throws Throwable {
     describe("verify trying to create a file over a non-empty dir fails");
     Path path = path("testOverwriteNonEmptyDirectory");
-    getFileSystem().delete(path, true);
     mkdirs(path);
     assertIsDirectory(path);
     Path child = new Path(path,"child");

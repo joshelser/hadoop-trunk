@@ -72,7 +72,7 @@ public abstract class AbstractConcatContractTest extends AbstractFSContractTestB
       fail("expected a failure");
     } catch (Exception e) {
       //expected
-      LOG.debug(e.toString(),e);
+      handleExpectedException(e);
     }
   }
 
@@ -84,7 +84,7 @@ public abstract class AbstractConcatContractTest extends AbstractFSContractTestB
       fail("expected a failure");
     } catch (Exception e) {
       //expected
-      LOG.debug(e.toString(), e);
+      handleExpectedException(e);
     }
   }
 
@@ -110,7 +110,7 @@ public abstract class AbstractConcatContractTest extends AbstractFSContractTestB
                              new Path[]{target});
     } catch (Exception e) {
       //expected
-      LOG.debug(e.toString(), e);
+      handleExpectedException(e);
     }
   }
 

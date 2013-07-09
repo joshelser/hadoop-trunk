@@ -142,6 +142,7 @@ public abstract class AbstractSeekContractTest extends AbstractFSContractTestBas
         "expected an exception, got data " + result + " at a position of " + p);
     } catch (EOFException e) {
       //bad seek -expected
+      handleExpectedException(e);
     } catch (IOException e) {
       //bad seek -expected, but not as preferred as an EOFException
       handleRelaxedException("a negative seek", "EOFException", e);
@@ -200,6 +201,7 @@ public abstract class AbstractSeekContractTest extends AbstractFSContractTestBas
         //a failure wasn't expected
         throw e;
       }
+      handleExpectedException(e);
     } catch (IOException e) {
       //This is an error iff the FS claims to be able to seek past the EOF
       if (canSeekPastEOF) {
