@@ -587,7 +587,7 @@ Apache Hadoop FileSystem Specification
 
 -----------
   
-  isFile(F) => raise IOException
+  isFile(F) => raise IOException || raise ParentNotDirectoryException 
   isDir(F) => true
   mkdirs(parent(F))
   
@@ -604,6 +604,66 @@ Apache Hadoop FileSystem Specification
   The probe for the existence and type of a path and directory creation MUST be
   atomic. The combined operation, including <<<mkdirs(parent(F))>>> MAY be atomic.
 
+
+** FSDataOutputStream create(Path f, ...)
+
+-----------
+
+FSDataOutputStream create(Path P,
+      FsPermission permission,
+      boolean overwrite,
+      int bufferSize,
+      short replication,
+      long blockSize,
+      Progressable progress) throws IOException;
+
+-----------
+
+  Preconditions
+
+-----------
+
+  #file must not exist for a no-overwrite create
+  !overwrite && isFile(FS, P)  => raise FileAlreadyExistsException
+  #it must not be a directory either; exception is the same
+  !overwrite && isDir(FS, P)  => raise FileAlreadyExistsException
+      
+  #overwriting a directory must fail.    
+  !isDir(FS,P) || raise FileAlreadyExistsException, FileNotFoundException
+  
+  
+    # MUST raise FileAlreadyExistsException, FileNotFoundException
+    ! exists(FS, P) || (overwrite && isFile(FS, P))
+    isDir(FS, parent(P)) || mkdirs(parent(P))
+
+-----------
+
+  Postconditions
+  
+-----------
+
+    FS' where (isFile(FS, P))) 
+  
+-----------
+
+  Return: <<<FSOutputStream>>>, 
+
+  * Filesystems may reject the request for other
+  reasons -such as the FS being read-only  (HDFS), 
+  the block size being below the minimum permitted (HDFS),
+  the replication count being out of range (HDFS),
+  quotas on namespace or filesystem being exceeded, reserved
+  names, ...etc. All rejections SHOULD be IOException or a subclass thereof
+  and MAY be a RuntimeException or subclass. (HDFS: InvalidPathException)
+  
+  * S3N, Swift and other blobstores do not currently change the FS state
+  until the output stream is closed(). This MAY be a bug, as it allows >1
+  client to create a file with overwrite=false
+  
+  * Local FS raises a FileNotFoundException when trying to create a file over
+  a directory, hence it is is listed as a possible exception to raise
+  in this situation.
+  
 
 ** <<<FileSystem.delete(Path P, boolean recursive)>>>
 
@@ -631,7 +691,7 @@ Apache Hadoop FileSystem Specification
 
 
   
-  # deleting an empty root returns true
+  # deleting an empty root returns true or false
   isDir(FS, P) && isRoot(P) && childen(FS, P) == {} 
     => (FS, true)) 
 
@@ -640,13 +700,13 @@ Apache Hadoop FileSystem Specification
     => ((FS' where (!exists(FS', P) && !exists(descendents(FS', P))) , true) 
 
 
-  # deleting a root path with children & recursive==true
+  # deleting a root path with children & recursive==true|false
   # removes the path and all descendents
   
   isDir(FS, P) && isRoot(P) && recursive  
     => (FS' where  !exists(descendents(FS', P)), true 
     
-  # deleting a non-root path with children & recursive==true
+  # deleting a non-root path with children & recursive==true | false
   # removes the path and all descendents
   
   isDir(FS, P) && !isRoot(P) && recursive => 
@@ -659,6 +719,9 @@ Apache Hadoop FileSystem Specification
   * Deleting an empty directory is atomic.
   
   * A recursive delete of a directory tree SHOULD be atomic. (or MUST?)
+  
+  * There's ambiguity over the return code of a delete
+  of the root directory
 
 
 ** <<<FileSystem.rename(Path S, Path D)>>>
@@ -694,7 +757,7 @@ Apache Hadoop FileSystem Specification
   
   # a destination can be a file iff source == dest
   # raise FileAlreadyExistsException
-  !isFile(FS, D') || S==D'
+  !isFile(FS, D') || S == D'
   
   
 -----------
@@ -874,61 +937,6 @@ Apache Hadoop FileSystem Specification
   (it MAY make this user-configurable)
 
 
-** FSDataOutputStream create(Path f, ...)
-
------------
-
-FSDataOutputStream create(Path P,
-      FsPermission permission,
-      boolean overwrite,
-      int bufferSize,
-      short replication,
-      long blockSize,
-      Progressable progress) throws IOException;
-
------------
-
-  Preconditions
-
------------
-
-  #file must not exist for a no-overwrite create
-  !overwrite && isFile(FS, P)  => raise FileAlreadyExistsException
-  #it must not be a directory either; exception is the same
-  !overwrite && isDir(FS, P)  => raise FileAlreadyExistsException
-      
-  #overwriting a directory?    
-  isDir(FS,P) =>
-  
-  
-    # MUST raise FileAlreadyExistsException, FileNotFoundException
-    ! exists(FS, P) || (overwrite && isFile(FS, P))
-    isDir(FS, parent(P)) || mkdirs(parent(P))
-
------------
-
-  Postconditions
-  
------------
-
-    FS' where (isFile(FS, P))) 
-  
------------
-
-  Return: <<<FSOutputStream>>>, 
-
-  * Filesystems may reject the request for other
-  reasons -such as the FS being read-only  (HDFS), 
-  the block size being below the minimum permitted (HDFS),
-  the replication count being out of range (HDFS),
-  quotas on namespace or filesystem being exceeded, reserved
-  names, ...etc. All rejections SHOULD be IOException or a subclass thereof
-  and MAY be a RuntimeException or subclass. (HDFS: InvalidPathException)
-  
-  * S3N, Swift and other blobstores do not currently change the FS state
-  until the output stream is closed(). This MAY be a bug, as it allows >1
-  client to create a file with overwrite=false
-  
 ** FSDataOutputStream append(Path f, int bufferSize, Progressable progress
 
   Implementations MAY throw <<UnsupportedOperationException>>
