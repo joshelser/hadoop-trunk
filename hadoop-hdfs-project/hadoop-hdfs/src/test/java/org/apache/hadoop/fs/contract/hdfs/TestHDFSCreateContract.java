@@ -16,22 +16,30 @@
  *  limitations under the License.
  */
 
-package org.apache.hadoop.fs.contract.s3n;
+package org.apache.hadoop.fs.contract.hdfs;
 
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.contract.AbstractCreateContractTest;
 import org.apache.hadoop.fs.contract.AbstractFSContract;
-import org.apache.hadoop.fs.contract.ContractTestUtils;
+import org.junit.AfterClass;
+import org.junit.BeforeClass;
 
-public class TestNativeS3CreateContract extends AbstractCreateContractTest {
+import java.io.IOException;
 
-  @Override
-  protected AbstractFSContract createContract(Configuration conf) {
-    return new NativeS3Contract(conf);
+public class TestHDFSCreateContract extends AbstractCreateContractTest {
+
+  @BeforeClass
+  public static void createCluster() throws IOException {
+    HDFSContract.createCluster();
+  }
+
+  @AfterClass
+  public static void teardownCluster() throws IOException {
+    HDFSContract.destroyCluster();
   }
 
   @Override
-  public void testOverwriteEmptyDirectory() throws Throwable {
-    ContractTestUtils.skip("blobstores can't distinguish empty directories from files");
+  protected AbstractFSContract createContract(Configuration conf) {
+    return new HDFSContract(conf);
   }
 }

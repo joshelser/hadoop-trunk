@@ -19,13 +19,14 @@
 package org.apache.hadoop.fs.contract.localfs;
 
 import org.apache.hadoop.conf.Configuration;
+import org.apache.hadoop.fs.contract.AbstractCreateContractTest;
 import org.apache.hadoop.fs.contract.AbstractFSContract;
-import org.apache.hadoop.fs.contract.AbstractSeekContractTest;
 
-public class TestLocalCreateContract extends AbstractSeekContractTest {
+public class TestLocalCreateContract extends AbstractCreateContractTest {
 
   @Override
   protected AbstractFSContract createContract(Configuration conf) {
     return new LocalFSContract(conf);
   }
+
 }
