@@ -20,6 +20,7 @@ package org.apache.hadoop.fs.ftp;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
+import java.net.ConnectException;
 import java.net.URI;
 
 import org.apache.commons.logging.Log;
@@ -33,11 +34,13 @@ import org.apache.hadoop.classification.InterfaceStability;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FSDataInputStream;
 import org.apache.hadoop.fs.FSDataOutputStream;
+import org.apache.hadoop.fs.FileAlreadyExistsException;
 import org.apache.hadoop.fs.FileStatus;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.fs.permission.FsAction;
 import org.apache.hadoop.fs.permission.FsPermission;
+import org.apache.hadoop.net.NetUtils;
 import org.apache.hadoop.util.Progressable;
 
 /**
@@ -123,15 +126,16 @@ public class FTPFileSystem extends FileSystem {
     client.connect(host, port);
     int reply = client.getReplyCode();
     if (!FTPReply.isPositiveCompletion(reply)) {
-      throw new IOException("Server - " + host
-          + " refused connection on port - " + port);
+      throw NetUtils.wrapException(host, port, NetUtils.UNKNOWN_HOST, 0,
+                                   new ConnectException(
+                                     "Server response " + reply));
     } else if (client.login(user, password)) {
       client.setFileTransferMode(FTP.BLOCK_TRANSFER_MODE);
       client.setFileType(FTP.BINARY_FILE_TYPE);
       client.setBufferSize(DEFAULT_BUFFER_SIZE);
     } else {
       throw new IOException("Login failed on server - " + host + ", port - "
-          + port);
+          + port + " as user '" + user + "'");
     }
 
     return client;
