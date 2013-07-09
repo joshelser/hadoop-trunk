@@ -52,7 +52,8 @@ public abstract class AbstractFSContractTestBase extends Assert
    * The test filesystem extracted from it
    */
   private FileSystem fileSystem;
-  
+  private Path testPath;
+
   /**
    * This must be implemented by all instantiated test cases
    * -provide the FS contract
@@ -75,6 +76,14 @@ public abstract class AbstractFSContractTestBase extends Assert
    */
   public FileSystem getFileSystem() {
     return fileSystem;
+  }
+
+  /**
+   * Get the log of the base class
+   * @return a logger
+   */
+  public static Log getLog() {
+    return LOG;
   }
 
   /**
@@ -126,6 +135,10 @@ public abstract class AbstractFSContractTestBase extends Assert
     //extract the test FS
     fileSystem = contract.getTestFileSystem();
     assertNotNull("null filesystem", fileSystem);
+    LOG.info("Test filesystem = " + fileSystem.getUri());
+    //create the test path
+    testPath = getContract().getTestPath();
+    mkdirs(testPath);
   }
 
   /**
@@ -134,7 +147,18 @@ public abstract class AbstractFSContractTestBase extends Assert
    */
   @After
   public void teardown() throws Exception {
+    deleteTestDirInTeardown();
+  }
 
+  /**
+   * Delete the test dir in the per-test teardown
+   * @throws IOException
+   */
+  protected void deleteTestDirInTeardown() throws IOException {
+    if (testPath!= null && !testPath.isRoot()
+        && getFileSystem().exists(testPath)) {
+      fileSystem.delete(testPath, true);
+    }
   }
 
   /**

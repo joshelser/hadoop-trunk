@@ -109,8 +109,7 @@ public abstract class AbstractFSContract extends Configured {
    * @return true if the feature is supported
    * @throws IOException IO problems
    */
-  public boolean isSupported(String feature, boolean defval) throws
-                                                             IOException {
+  public boolean isSupported(String feature, boolean defval) {
     return getConf().getBoolean(getConfKey(feature), defval);
   }
 
@@ -122,8 +121,12 @@ public abstract class AbstractFSContract extends Configured {
    * @return true if the feature is supported
    * @throws IOException IO problems
    */
-  public int getLimit(String feature, int defval) throws IOException {
+  public int getLimit(String feature, int defval) {
     return getConf().getInt(getConfKey(feature), defval);
+  }
+  
+  public String getOption(String feature, String defval) {
+    return getConf().get(getConfKey(feature), defval);
   }
 
   /**
