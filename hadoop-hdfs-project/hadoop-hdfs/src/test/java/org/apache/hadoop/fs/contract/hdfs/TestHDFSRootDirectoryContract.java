@@ -19,7 +19,6 @@
 package org.apache.hadoop.fs.contract.hdfs;
 
 import org.apache.hadoop.conf.Configuration;
-import org.apache.hadoop.fs.contract.AbstractDirectoryContractTest;
 import org.apache.hadoop.fs.contract.AbstractFSContract;
 import org.apache.hadoop.fs.contract.AbstractRootDirectoryContractTest;
 import org.junit.AfterClass;

@@ -21,14 +21,10 @@ package org.apache.hadoop.fs.contract.hdfs;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.contract.AbstractDirectoryContractTest;
 import org.apache.hadoop.fs.contract.AbstractFSContract;
-import org.apache.hadoop.hdfs.HdfsConfiguration;
-import org.apache.hadoop.hdfs.MiniDFSCluster;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 
-import javax.security.auth.login.LoginException;
 import java.io.IOException;
-import java.net.URISyntaxException;
 
 /**
  * Test dir operations on a the local FS.

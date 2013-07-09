@@ -21,7 +21,6 @@ package org.apache.hadoop.fs.contract.hdfs;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.contract.AbstractConcatContractTest;
 import org.apache.hadoop.fs.contract.AbstractFSContract;
-import org.apache.hadoop.fs.contract.AbstractSeekContractTest;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 
