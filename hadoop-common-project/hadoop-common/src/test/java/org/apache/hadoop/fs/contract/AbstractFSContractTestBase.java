@@ -155,10 +155,7 @@ public abstract class AbstractFSContractTestBase extends Assert
    * @throws IOException
    */
   protected void deleteTestDirInTeardown() throws IOException {
-    if (testPath!= null && !testPath.isRoot()
-        && getFileSystem().exists(testPath)) {
-      fileSystem.delete(testPath, true);
-    }
+    cleanup("TEARDOWN", getFileSystem(), testPath);
   }
 
   /**
@@ -219,6 +216,14 @@ public abstract class AbstractFSContractTestBase extends Assert
                                         Exception e) {
     LOG.warn("an " + expectedException + " was not the exception class" +
              " raised on " + action + ": " + e.getClass(), e);
+  }
+
+  /**
+   * Handle expected exceptions through logging and/or other actions
+   * @param e exception raised.
+   */
+  protected void handleExpectedException(Exception e) {
+    getLog().debug("expected " + e, e);
   }
 
   /**

@@ -29,6 +29,7 @@ import org.apache.hadoop.util.StringUtils;
 import org.junit.Assert;
 import org.junit.internal.AssumptionViolatedException;
 
+import java.io.EOFException;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.Arrays;
@@ -139,7 +140,9 @@ public class ContractTestUtils extends Assert {
   }
 
   /**
-   * Read the file and convert to a byte dataaset
+   * Read the file and convert to a byte dataset.
+   * This implements readfully internally, so that it will read
+   * in the file without ever having to seek()
    * @param fs filesystem
    * @param path path to read from
    * @param len length of data to read
@@ -150,8 +153,16 @@ public class ContractTestUtils extends Assert {
       throws IOException {
     FSDataInputStream in = fs.open(path);
     byte[] dest = new byte[len];
+    int offset =0;
+    int nread = 0;
     try {
-      in.readFully(0, dest);
+      while (nread < len) {
+        int nbytes = in.read(dest, offset + nread, len - nread);
+        if (nbytes < 0) {
+          throw new EOFException("End of file reached before reading fully.");
+        }
+        nread += nbytes;
+      }
     } finally {
       in.close();
     }
@@ -297,7 +308,7 @@ public class ContractTestUtils extends Assert {
   public static void cleanup(String action, FileSystem fileSystem, Path path) {
     noteAction(action);
     try {
-      if (fileSystem != null) {
+      if (fileSystem != null && fileSystem.exists(path)) {
         fileSystem.delete(path,
                           true);
       }
