@@ -121,7 +121,7 @@ public class ContractTestUtils extends Assert {
                                    Path path,
                                    byte[] src,
                                    int len,
-                                   int blocksize,
+                                   int buffersize,
                                    boolean overwrite) throws IOException {
     assertTrue(
       "Not enough data in source array to write " + len + " bytes",
@@ -132,7 +132,7 @@ public class ContractTestUtils extends Assert {
                                          .getInt(IO_FILE_BUFFER_SIZE,
                                                  4096),
                                        (short) 1,
-                                       blocksize);
+                                       buffersize);
     out.write(src, 0, len);
     out.close();
     assertFileHasLength(fs, path, len);
@@ -158,6 +158,24 @@ public class ContractTestUtils extends Assert {
     return dest;
   }
 
+  /**
+   * Read a file, verify its length and contents match the expected array
+   * @param fs filesystem
+   * @param path path to file
+   * @param original original dataset
+   * @throws IOException IO Problems
+   */
+  public static void verifyFileContents(FileSystem fs,
+                                        Path path,
+                                        byte[] original) throws IOException {
+    FileStatus stat = fs.getFileStatus(path);
+    String statText = stat.toString();
+    assertTrue("not a file " + statText, stat.isFile());
+    assertEquals("wrong length " + statText, stat.getLen(), original.length);
+    byte[] bytes = readDataset(fs, path, original.length);
+    compareByteArrays(original,bytes,original.length);
+  }
+  
   /**
    * Verify that the read at a specific offset in a stream
    * matches that expected
