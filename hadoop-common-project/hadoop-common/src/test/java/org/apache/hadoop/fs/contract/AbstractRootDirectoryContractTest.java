@@ -18,6 +18,8 @@
 
 package org.apache.hadoop.fs.contract;
 
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
 import org.junit.Test;
@@ -33,6 +35,8 @@ import static org.apache.hadoop.fs.contract.ContractTestUtils.dataset;
  * you don't care about the data.
  */
 public abstract class AbstractRootDirectoryContractTest extends AbstractFSContractTestBase {
+  protected static final Log LOG =
+    LogFactory.getLog(AbstractSeekContractTest.class);
 
   @Override
   public void setup() throws Exception {
@@ -57,7 +61,8 @@ public abstract class AbstractRootDirectoryContractTest extends AbstractFSContra
     skipIfUnsupported(TEST_ROOT_TESTS_ENABLED);
     Path root = new Path("/");
     ContractTestUtils.assertIsDirectory(getFileSystem(), root);
-    assertTrue("rm / failed", getFileSystem().delete(root, true));
+    boolean deleted = getFileSystem().delete(root, true);
+    LOG.info("rm / of empty dir result is " + deleted);
     ContractTestUtils.assertIsDirectory(getFileSystem(), root);
   }
 
@@ -70,8 +75,9 @@ public abstract class AbstractRootDirectoryContractTest extends AbstractFSContra
     ContractTestUtils.touch(getFileSystem(), file);
     ContractTestUtils.assertIsDirectory(getFileSystem(), root);
     try {
-      getFileSystem().delete(root, false);
-      fail("non recursive rm / should have failed");
+      boolean deleted = getFileSystem().delete(root, false);
+      fail("non recursive delete should have raised an exception," +
+           " but completed with exit code " + deleted);
     } catch (IOException e) {
       //expected
     }
@@ -86,9 +92,10 @@ public abstract class AbstractRootDirectoryContractTest extends AbstractFSContra
     ContractTestUtils.assertIsDirectory(getFileSystem(), root);
     Path file = new Path("/testRmRootRecursive");
     ContractTestUtils.touch(getFileSystem(), file);
-    assertTrue("rm -r / failed", getFileSystem().delete(root, true));
-    assertPathDoesNotExist("expected file to be deleted", file);
+    boolean deleted = getFileSystem().delete(root, true);
     ContractTestUtils.assertIsDirectory(getFileSystem(), root);
+    LOG.info("rm -rf / result is " + deleted);
+    assertPathDoesNotExist("expected file to be deleted", file);
   }
 
   @Test
@@ -102,7 +109,6 @@ public abstract class AbstractRootDirectoryContractTest extends AbstractFSContra
       //expected
     }
     assertIsDirectory(root);
-
   }
 
 }
