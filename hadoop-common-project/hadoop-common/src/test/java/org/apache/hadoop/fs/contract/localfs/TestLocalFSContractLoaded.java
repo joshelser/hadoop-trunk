@@ -26,7 +26,7 @@ import org.junit.Test;
 import java.net.URL;
 
 /**
- * test of contract tests itself more than anything else
+ * just here to make sure that the local.xml resource is actually loading
  */
 public class TestLocalFSContractLoaded extends AbstractDirectoryContractTest {
 
