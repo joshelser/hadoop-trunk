@@ -276,14 +276,13 @@ public class FTPFileSystem extends FileSystem {
    * Convenience method, so that we don't open a new connection when using this
    * method from within another method. Otherwise every API invocation incurs
    * the overhead of opening/closing a TCP connection.
+   * @throws IOException on IO problems other than FileNotFoundException
    */
-  private boolean exists(FTPClient client, Path file) {
+  private boolean exists(FTPClient client, Path file) throws IOException {
     try {
       return getFileStatus(client, file) != null;
     } catch (FileNotFoundException fnfe) {
       return false;
-    } catch (IOException ioe) {
-      throw new FTPException("Failed to get file status", ioe);
     }
   }
 
