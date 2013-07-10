@@ -37,6 +37,7 @@ import org.apache.hadoop.fs.FSDataOutputStream;
 import org.apache.hadoop.fs.FileAlreadyExistsException;
 import org.apache.hadoop.fs.FileStatus;
 import org.apache.hadoop.fs.FileSystem;
+import org.apache.hadoop.fs.ParentNotDirectoryException;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.fs.permission.FsAction;
 import org.apache.hadoop.fs.permission.FsPermission;
@@ -494,7 +495,7 @@ public class FTPFileSystem extends FileSystem {
         created = created && client.makeDirectory(pathName);
       }
     } else if (isFile(client, absolute)) {
-      throw new IOException(String.format(
+      throw new ParentNotDirectoryException(String.format(
           "Can't make directory for path %s since it is a file.", absolute));
     }
     return created;
