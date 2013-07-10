@@ -318,7 +318,7 @@ public abstract class ChecksumFileSystem extends FilterFileSystem {
     @Override
     public synchronized void seek(long pos) throws IOException {
       if(pos>getFileLength()) {
-        throw new IOException("Cannot seek after EOF");
+        throw new EOFException("Cannot seek after EOF");
       }
       super.seek(pos);
     }
