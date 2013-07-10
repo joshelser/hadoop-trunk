@@ -51,9 +51,9 @@ public abstract class AbstractSeekContractTest extends AbstractFSContractTestBas
     super.setup();
     skipIfUnsupported(SUPPORTS_SEEK);
     //delete the test directory
-    testPath = path("test");
-    smallSeekFile = new Path(testPath, "seekfile.txt");
-    zeroByteFile = new Path(testPath, "zero.txt");
+    testPath = getContract().getTestPath();
+    smallSeekFile = path("seekfile.txt");
+    zeroByteFile = path("zero.txt");
     byte[] block = dataset(TEST_FILE_LEN, 0, 255);
     //this file now has a simple rule: offset => value
     createFile(getFileSystem(), smallSeekFile, false, block);
@@ -222,7 +222,7 @@ public abstract class AbstractSeekContractTest extends AbstractFSContractTestBas
   @Test
   public void testSeekBigFile() throws Throwable {
     describe("Seek round a large file and verify the bytes are what is expected");
-    Path testSeekFile = new Path(testPath, "bigseekfile.txt");
+    Path testSeekFile = path("bigseekfile.txt");
     byte[] block = dataset(65536, 0, 255);
     createFile(getFileSystem(), testSeekFile, false, block);
     instream = getFileSystem().open(testSeekFile);
@@ -248,7 +248,7 @@ public abstract class AbstractSeekContractTest extends AbstractFSContractTestBas
   @Test
   public void testPositionedBulkReadDoesntChangePosition() throws Throwable {
     describe("verify that a positioned read does not change the getPos() value");
-    Path testSeekFile = new Path(testPath, "bigseekfile.txt");
+    Path testSeekFile = path("bigseekfile.txt");
     byte[] block = dataset(65536, 0, 255);
     createFile(getFileSystem(), testSeekFile, false, block);
     instream = getFileSystem().open(testSeekFile);
@@ -280,7 +280,7 @@ public abstract class AbstractSeekContractTest extends AbstractFSContractTestBas
     describe("Testing " + limit + " random seeks");
     int filesize = 10 * 1024;
     byte[] buf = dataset(filesize, 0, 255);
-    Path randomSeekFile = new Path(testPath, "testrandomseeks.bin");
+    Path randomSeekFile = path("testrandomseeks.bin");
     createFile(getFileSystem(), randomSeekFile, false, buf);
     Random r = new Random();
     FSDataInputStream stm = getFileSystem().open(randomSeekFile);
@@ -311,13 +311,4 @@ public abstract class AbstractSeekContractTest extends AbstractFSContractTestBas
     }
   }
 
-  /**
-   * Assert that the result value == -1; which implies
-   * that a read was successful
-   * @param text text to include in a message (usually the operation)
-   * @param result read result to validate
-   */
-  protected void assertMinusOne(String text, int result) {
-    assertEquals(text + " wrong read result " + result, -1, result);
-  }
 }
