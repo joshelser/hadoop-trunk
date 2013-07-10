@@ -551,7 +551,7 @@ public class FTPFileSystem extends FileSystem {
     }
     if (exists(client, absoluteDst)) {
       throw new FileAlreadyExistsException("Destination path " + dst
-          + " already exist, cannot rename!");
+          + " already exists, cannot rename!");
     }
     String parentSrc = absoluteSrc.getParent().toUri().toString();
     String parentDst = absoluteDst.getParent().toUri().toString();
