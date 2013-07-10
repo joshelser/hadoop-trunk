@@ -16,33 +16,19 @@
  *  limitations under the License.
  */
 
-package org.apache.hadoop.fs.contract.hdfs;
+package org.apache.hadoop.fs.contract.ftp;
 
 import org.apache.hadoop.conf.Configuration;
-import org.apache.hadoop.fs.contract.AbstractDirectoryContractTest;
+import org.apache.hadoop.fs.contract.AbstractMkdirContractTest;
 import org.apache.hadoop.fs.contract.AbstractFSContract;
-import org.junit.AfterClass;
-import org.junit.BeforeClass;
-
-import java.io.IOException;
 
 /**
  * Test dir operations on a the local FS.
  */
-public class TestHDFSDirectoryContract extends AbstractDirectoryContractTest {
-
-  @BeforeClass
-  public static void createCluster() throws IOException {
-    HDFSContract.createCluster();
-  }
-
-  @AfterClass
-  public static void teardownCluster() throws IOException {
-    HDFSContract.destroyCluster();
-  }
+public class TestFTPMkdirContract extends AbstractMkdirContractTest {
 
   @Override
   protected AbstractFSContract createContract(Configuration conf) {
-    return new HDFSContract(conf);
+    return new FTPContract(conf);
   }
 }

@@ -16,19 +16,19 @@
  *  limitations under the License.
  */
 
-package org.apache.hadoop.fs.contract.ftp;
+package org.apache.hadoop.fs.contract.localfs;
 
 import org.apache.hadoop.conf.Configuration;
-import org.apache.hadoop.fs.contract.AbstractDirectoryContractTest;
+import org.apache.hadoop.fs.contract.AbstractMkdirContractTest;
 import org.apache.hadoop.fs.contract.AbstractFSContract;
 
 /**
  * Test dir operations on a the local FS.
  */
-public class TestFTPDirectoryContract extends AbstractDirectoryContractTest {
+public class TestLocalMkdirContract extends AbstractMkdirContractTest {
 
   @Override
   protected AbstractFSContract createContract(Configuration conf) {
-    return new FTPContract(conf);
+    return new LocalFSContract(conf);
   }
 }

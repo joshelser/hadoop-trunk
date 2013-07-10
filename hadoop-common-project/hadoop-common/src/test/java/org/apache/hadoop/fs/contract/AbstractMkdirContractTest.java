@@ -18,7 +18,9 @@
 
 package org.apache.hadoop.fs.contract;
 
+import org.apache.hadoop.fs.FileAlreadyExistsException;
 import org.apache.hadoop.fs.FileSystem;
+import org.apache.hadoop.fs.ParentNotDirectoryException;
 import org.apache.hadoop.fs.Path;
 import org.junit.Test;
 
@@ -30,7 +32,7 @@ import static org.apache.hadoop.fs.contract.ContractTestUtils.dataset;
 /**
  * Test directory operations
  */
-public abstract class AbstractDirectoryContractTest extends AbstractFSContractTestBase {
+public abstract class AbstractMkdirContractTest extends AbstractFSContractTestBase {
 
   @Test
   public void testMkDirRmDir() throws Throwable {
@@ -63,10 +65,44 @@ public abstract class AbstractDirectoryContractTest extends AbstractFSContractTe
     createFile(getFileSystem(), path, false, dataset);
     try {
       boolean made = fs.mkdirs(path);
-      assertFalse("mkdirs succeeded over a file" + ls(path), made);
+      fail("mkdirs did not fail over a file but returned " + made
+            + "; " + ls(path));
+    } catch (ParentNotDirectoryException e) {
+      //parent is a directory  
+      handleExpectedException(e);
+    } catch (FileAlreadyExistsException e) {
+      handleRelaxedException("mkdirs", "ParentNotDirectoryException", e);
     } catch (IOException e) {
       //here the FS says "no create"  
+      handleRelaxedException("mkdirs", "FileAlreadyExistsException", e);
+    }
+    assertIsFile(path);
+    byte[] bytes = ContractTestUtils.readDataset(getFileSystem(), path,
+                                                 dataset.length);
+    ContractTestUtils.compareByteArrays(dataset, bytes, dataset.length);
+    assertPathExists("mkdir failed", path);
+    assertDeleted(path, true);
+  }
+
+  @Test
+  public void testMkdirOverParentFile() throws Throwable {
+    describe("try to mkdir where a parent is a file");
+    FileSystem fs = getFileSystem();
+    Path path = path("testMkdirOverParentFile");
+    byte[] dataset = dataset(1024, ' ', 'z');
+    createFile(getFileSystem(), path, false, dataset);
+    Path child = new Path(path,"child-to-mkdir");
+    try {
+      boolean made = fs.mkdirs(child);
+      fail("mkdirs did not fail over a file but returned " + made
+           + "; " + ls(path));
+    } catch (ParentNotDirectoryException e) {
+      //parent is a directory  
       handleExpectedException(e);
+    } catch (FileAlreadyExistsException e) {
+      handleRelaxedException("mkdirs", "ParentNotDirectoryException", e);
+    } catch (IOException e) {
+      handleRelaxedException("mkdirs", "ParentNotDirectoryException", e);
     }
     assertIsFile(path);
     byte[] bytes = ContractTestUtils.readDataset(getFileSystem(), path,

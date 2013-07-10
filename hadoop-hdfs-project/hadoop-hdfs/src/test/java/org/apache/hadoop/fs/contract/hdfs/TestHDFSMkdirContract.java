@@ -16,19 +16,33 @@
  *  limitations under the License.
  */
 
-package org.apache.hadoop.fs.contract.s3n;
+package org.apache.hadoop.fs.contract.hdfs;
 
 import org.apache.hadoop.conf.Configuration;
-import org.apache.hadoop.fs.contract.AbstractDirectoryContractTest;
+import org.apache.hadoop.fs.contract.AbstractMkdirContractTest;
 import org.apache.hadoop.fs.contract.AbstractFSContract;
+import org.junit.AfterClass;
+import org.junit.BeforeClass;
+
+import java.io.IOException;
 
 /**
- * Test dir operations on S3
+ * Test dir operations on a the local FS.
  */
-public class TestNativeS3DirectoryContract extends AbstractDirectoryContractTest {
+public class TestHDFSMkdirContract extends AbstractMkdirContractTest {
+
+  @BeforeClass
+  public static void createCluster() throws IOException {
+    HDFSContract.createCluster();
+  }
+
+  @AfterClass
+  public static void teardownCluster() throws IOException {
+    HDFSContract.destroyCluster();
+  }
 
   @Override
   protected AbstractFSContract createContract(Configuration conf) {
-    return new NativeS3Contract(conf);
+    return new HDFSContract(conf);
   }
 }

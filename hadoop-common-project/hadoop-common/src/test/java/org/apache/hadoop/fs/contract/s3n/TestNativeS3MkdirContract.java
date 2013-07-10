@@ -16,19 +16,19 @@
  *  limitations under the License.
  */
 
-package org.apache.hadoop.fs.contract.localfs;
+package org.apache.hadoop.fs.contract.s3n;
 
 import org.apache.hadoop.conf.Configuration;
-import org.apache.hadoop.fs.contract.AbstractDirectoryContractTest;
+import org.apache.hadoop.fs.contract.AbstractMkdirContractTest;
 import org.apache.hadoop.fs.contract.AbstractFSContract;
 
 /**
- * Test dir operations on a the local FS.
+ * Test dir operations on S3
  */
-public class TestLocalDirectoryContract extends AbstractDirectoryContractTest {
+public class TestNativeS3MkdirContract extends AbstractMkdirContractTest {
 
   @Override
   protected AbstractFSContract createContract(Configuration conf) {
-    return new LocalFSContract(conf);
+    return new NativeS3Contract(conf);
   }
 }
