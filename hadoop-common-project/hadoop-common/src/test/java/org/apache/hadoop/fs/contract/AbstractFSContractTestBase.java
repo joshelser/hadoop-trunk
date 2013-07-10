@@ -32,6 +32,7 @@ import org.junit.Before;
 import static org.apache.hadoop.fs.contract.ContractTestUtils.*;
 
 import java.io.IOException;
+import java.net.URI;
 
 /**
  * This is the base class for all the contract tests
@@ -135,7 +136,13 @@ public abstract class AbstractFSContractTestBase extends Assert
     //extract the test FS
     fileSystem = contract.getTestFileSystem();
     assertNotNull("null filesystem", fileSystem);
-    LOG.info("Test filesystem = " + fileSystem.getUri());
+    URI fsURI = fileSystem.getUri();
+    LOG.info("Test filesystem = " + fsURI);
+    //sanity check to make sure that the test FS picked up really matches
+    //the scheme chosen. This is to avoid defaulting back to the localFS
+    //which would be drastic for root FS tests
+    assertEquals("wrong filesystem of " + fsURI,
+                 contract.getScheme(), fsURI.getScheme());
     //create the test path
     testPath = getContract().getTestPath();
     mkdirs(testPath);
@@ -207,13 +214,18 @@ public abstract class AbstractFSContractTestBase extends Assert
    * exception desired, but one that, while still within the boundary
    * of the contract, is a bit looser. 
    *
+   * If the FS contract says that they support the strictest exceptions,
+   * that is what they must return, and the exception here is rethrown
    * @param action Action
    * @param expectedException what was expected
    * @param e exception that was received
    */
   protected void handleRelaxedException(String action,
                                         String expectedException,
-                                        Exception e) {
+                                        Exception e) throws Exception {
+    if (getContract().isSupported(SUPPORTS_STRICT_EXCEPTIONS, false)) {
+      throw e;
+    }
     LOG.warn("an " + expectedException + " was not the exception class" +
              " raised on " + action + ": " + e.getClass(), e);
   }
@@ -291,4 +303,13 @@ public abstract class AbstractFSContractTestBase extends Assert
     ContractTestUtils.assertDeleted(fileSystem, path, recursive);
   }
 
+  /**
+   * Assert that the result value == -1; which implies
+   * that a read was successful
+   * @param text text to include in a message (usually the operation)
+   * @param result read result to validate
+   */
+  protected void assertMinusOne(String text, int result) {
+    assertEquals(text + " wrong read result " + result, -1, result);
+  }
 }
