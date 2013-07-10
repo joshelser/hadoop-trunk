@@ -219,8 +219,15 @@ public class FTPFileSystem extends FileSystem {
     final FTPClient client = connect();
     Path workDir = new Path(client.printWorkingDirectory());
     Path absolute = makeAbsolute(workDir, file);
-    if (exists(client, file)) {
-      if (overwrite) {
+
+    FileStatus status = null;
+    try {
+      status = getFileStatus(client, file);
+    } catch (FileNotFoundException fnfe) {
+      status = null;
+    }
+    if (status != null) {
+      if (overwrite && !status.isDirectory()) {
         delete(client, file);
       } else {
         disconnect(client);
@@ -314,9 +321,14 @@ public class FTPFileSystem extends FileSystem {
     Path workDir = new Path(client.printWorkingDirectory());
     Path absolute = makeAbsolute(workDir, file);
     String pathName = absolute.toUri().getPath();
-    FileStatus fileStat = getFileStatus(client, absolute);
-    if (fileStat.isFile()) {
-      return client.deleteFile(pathName);
+    try {
+      FileStatus fileStat = getFileStatus(client, absolute);
+      if (fileStat.isFile()) {
+        return client.deleteFile(pathName);
+      }
+    } catch (FileNotFoundException e) {
+      //the file is not there
+      return false;
     }
     FileStatus[] dirEntries = listStatus(client, absolute);
     if (dirEntries != null && dirEntries.length > 0 && !(recursive)) {
