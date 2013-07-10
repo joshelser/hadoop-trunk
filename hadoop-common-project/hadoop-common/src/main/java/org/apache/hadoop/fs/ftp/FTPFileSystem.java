@@ -183,7 +183,7 @@ public class FTPFileSystem extends FileSystem {
     FileStatus fileStat = getFileStatus(client, absolute);
     if (fileStat.isDirectory()) {
       disconnect(client);
-      throw new IOException("Path " + file + " is a directory.");
+      throw new FileNotFoundException("Path " + file + " is a directory.");
     }
     client.allocate(bufferSize);
     Path parent = absolute.getParent();
