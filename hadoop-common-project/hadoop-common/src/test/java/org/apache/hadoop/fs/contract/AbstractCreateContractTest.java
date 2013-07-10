@@ -18,13 +18,16 @@
 
 package org.apache.hadoop.fs.contract;
 
+import org.apache.hadoop.fs.FSDataOutputStream;
 import org.apache.hadoop.fs.FileAlreadyExistsException;
 import org.apache.hadoop.fs.Path;
+import org.apache.hadoop.io.IOUtils;
 import org.junit.Test;
 
 import java.io.FileNotFoundException;
 import java.io.IOException;
 
+import static org.apache.hadoop.fs.contract.ContractTestUtils.assertPathExists;
 import static org.apache.hadoop.fs.contract.ContractTestUtils.dataset;
 import static org.apache.hadoop.fs.contract.ContractTestUtils.writeDataset;
 import static org.apache.hadoop.fs.contract.ContractTestUtils.writeTextFile;
@@ -130,6 +133,21 @@ public abstract class AbstractCreateContractTest extends
     assertIsDirectory(path);
     assertIsFile(child);
   }
-  
-  
+
+  @Test
+  public void testCreatedFileIsImmediatelyVisible() throws Throwable {
+    describe("verify that a newly created file exists as soon as open returns");
+    Path path = path("testCreatedFileIsImmediatelyVisible");
+    FSDataOutputStream out = null;
+    try {
+      out = getFileSystem().create(path,
+                                   false,
+                                   4096,
+                                   (short) 1,
+                                   1024);
+      assertPathExists("expected path to be visible before anything written",path);
+    } finally {
+      IOUtils.closeStream(out);
+    }
+  }
 }
