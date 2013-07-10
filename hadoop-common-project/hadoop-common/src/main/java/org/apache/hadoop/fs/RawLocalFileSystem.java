@@ -434,7 +434,7 @@ public class RawLocalFileSystem extends FileSystem {
     if(parent != null) {
       File parent2f = pathToFile(parent);
       if(parent2f != null && parent2f.exists() && !parent2f.isDirectory()) {
-        throw new FileAlreadyExistsException("Parent path is not a directory: " 
+        throw new ParentNotDirectoryException("Parent path is not a directory: " 
             + parent);
       }
     }
