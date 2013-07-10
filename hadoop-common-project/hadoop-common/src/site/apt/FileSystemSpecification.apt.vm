@@ -300,7 +300,7 @@ Apache Hadoop FileSystem Specification
 
 ~~ ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-* Core specification of a Hadoop filesystem
+* Formal specification of a Hadoop filesystem
 
   This section attempts to model the contents a filesystem as a set of paths that 
   are either directories, symbolic links or files; only files may contain data.
@@ -346,6 +346,9 @@ Apache Hadoop FileSystem Specification
   Path Elements MUST NOT contain the strings <<<"/">>> or <<<":">>>.
   
   Filesystems MAY have other strings that are not permitted in a path element.
+  
+  When validating path element, the exception InvalidPathException SHOULD
+  be raised when a path is invalid [HDFS]
   
   The last Path Element in a Path is called the filename:
   
@@ -525,11 +528,16 @@ Apache Hadoop FileSystem Specification
   in terms of operations that query or change the state of a filesystem.
   
 
+~~ =============================================================
+~~ CLASS: FileSystem
+~~ =============================================================
+
 * org.apache.hadoop.fs.FileSystem
   
   All operations that take a Path to this interface MUST support relative paths.
   In such a case, they must be resolved relative to the working directory
   defined by <<<setWorkingDirectory()>>>.
+
       
 ** boolean exists(Path P)
     
@@ -581,14 +589,19 @@ Apache Hadoop FileSystem Specification
   
 -----------
 
-** boolean mkdirs(Path F, FsPermission Permission )
+~~ =============================================================
+~~ METHOD: mkdirs()
+~~ =============================================================
+
+** boolean (Path F, FsPermission Permission )
 
   Preconditions
 
 -----------
   
-  isFile(F) => raise IOException || raise ParentNotDirectoryException 
-  isDir(F) => true
+  isFile(F) =>
+   raise (IOException | ParentNotDirectoryException | FileAlreadyExistsException) 
+  isDir(F) => return true
   mkdirs(parent(F))
   
 -----------
@@ -598,12 +611,25 @@ Apache Hadoop FileSystem Specification
 -----------
   
   FS' where (exists(FS', F) && isDir(FS', F))
+  true
   
 -----------
 
   The probe for the existence and type of a path and directory creation MUST be
   atomic. The combined operation, including <<<mkdirs(parent(F))>>> MAY be atomic.
 
+  The return value is always true (this is defined in HDFS):
+  
+------------
+
+      // all the users of mkdirs() are used to expect 'true' even if
+      // a new directory is not created.
+
+------------
+
+~~ =============================================================
+~~ METHOD: create()
+~~ =============================================================
 
 ** FSDataOutputStream create(Path f, ...)
 
@@ -646,7 +672,9 @@ FSDataOutputStream create(Path P,
   
 -----------
 
-  Return: <<<FSOutputStream>>>, 
+  Return: <<<FSDataOutputStream>>>, where <<<FSDataOutputStream.write(byte)>>>,
+  will, after any flushing, sycing and committing, add <<<byte>>>
+  to the tail of the list returned by <<<data(FS, P)>>>.
 
   * Filesystems may reject the request for other
   reasons -such as the FS being read-only  (HDFS), 
@@ -663,6 +691,90 @@ FSDataOutputStream create(Path P,
   * Local FS raises a FileNotFoundException when trying to create a file over
   a directory, hence it is is listed as a possible exception to raise
   in this situation.
+
+~~ =============================================================
+~~ METHOD: append()
+~~ =============================================================
+
+** FSDataOutputStream append(Path P, int bufferSize, Progressable progress)
+
+  Implementations MAY throw <<UnsupportedOperationException>>
+
+  Preconditions
+
+-----------
+
+    !exists(FS, P) => throw FileNotFoundException
+    !isFile(FS, P))=> throw FileNotFoundException or IOException
+
+-----------
+
+  Postconditions
+  
+-----------
+  
+-----------
+
+  Return: <<<FSDataOutputStream>>>, where <<<FSDataOutputStream.write(byte)>>>,
+  will, after any flushing, sycing and committing, add <<<byte>>>
+  to the tail of the list returned by <<<data(FS, P)>>>.
+  
+  
+
+~~ =============================================================
+~~ METHOD: open()
+~~ =============================================================
+
+** FSDataInputStream open(Path f, int bufferSize)
+
+  Implementations MAY throw <<UnsupportedOperationException>>
+
+  Preconditions
+
+-----------
+
+    !exists(FS, P) => throw FileNotFoundException
+    !isFile(FS, P))=> throw FileNotFoundException or IOException
+-----------
+
+  Postconditions
+  
+-----------
+  
+-----------
+  
+*** HDFS actions
+
+  MAY throw <<<UnresolvedPathException>>> when attempting to traverse
+  symbolic links
+  
+  throws IOException("Cannot open filename " + src); if it 
+  cannot locate the blocks -FileNotFoundException would seem beter
+  
+
+
+~~ =============================================================
+~~ METHOD: delete()
+~~ =============================================================
+
+
+** <<<FileSystem.delete(Path P, boolean recursive)>>>
+
+  Preconditions
+
+-----------
+
+
+  # a directory with children and recursive == false cannot be deleted
+  # raise IOException
+  isDir(FS, P) => (recursive || childen(FS, P) == {} )
+
+  
+-----------
+
+  Postconditions
+
+-----------
   
 
 ** <<<FileSystem.delete(Path P, boolean recursive)>>>
@@ -688,7 +800,6 @@ FSDataOutputStream create(Path P,
   
   # a path referring to a file is removed, return value: true
   isFile(FS, P) => (FS' where (!exists(FS', P)), true)
-
 
   
   # deleting an empty root returns true or false
@@ -722,6 +833,11 @@ FSDataOutputStream create(Path P,
   
   * There's ambiguity over the return code of a delete
   of the root directory
+
+
+~~ =============================================================
+~~ METHOD: rename()
+~~ =============================================================
 
 
 ** <<<FileSystem.rename(Path S, Path D)>>>
@@ -803,6 +919,10 @@ FSDataOutputStream create(Path P,
     * The return code of renaming a directory to itself is unspecified. 
 
 
+~~ =============================================================
+~~ METHOD: listStatus()
+~~ =============================================================
+
 ** FileSystem.listStatus(Path P, PathFilter Filter) 
 
   A <<<PathFilter>>> is a predicate function that returns true iff the path P
@@ -840,6 +960,9 @@ FSDataOutputStream create(Path P,
   The details MAY be out of date -including the contents of any directory, the
   attributes of any files, and the existence of the path supplied. 
 
+~~ =============================================================
+~~ METHOD: getFileBlockLocations()
+~~ =============================================================
 
 **  getFileBlockLocations(FileStatus F, int S, int L)
 
@@ -890,7 +1013,10 @@ FSDataOutputStream create(Path P,
 
   <<REVIEW>>: Action if <<isDirectory(FS, P)>> ? 
   
- 
+~~ =============================================================
+~~ METHOD: getFileBlockLocations()
+~~ =============================================================
+
 **  getFileBlockLocations(Path P, int S, int L)
 
   Preconditions
@@ -937,29 +1063,15 @@ FSDataOutputStream create(Path P,
   (it MAY make this user-configurable)
 
 
-** FSDataOutputStream append(Path f, int bufferSize, Progressable progress
-
-  Implementations MAY throw <<UnsupportedOperationException>>
-
-  Preconditions
-
------------
-
-    exists(FS, P) || throw  FileNotFoundException
-    isFile(FS, P))|| throw  IOException or subclass, including FileNotFoundException
-
------------
-
-  Postconditions
-  
------------
-  
------------
-
-  Return: <<<FSOutputStream>>>, 
+~~ =============================================================
+~~ METHOD: concat()
+~~ =============================================================
 
 ** concat(Path T, Path Srcs[])
 
+  Joins multiple blocks together to create a single file. This
+  is a very under-implemented (and under-used) operation.
+  
   Implementations MAY throw <<UnsupportedOperationException>>
 
   Preconditions
@@ -1000,7 +1112,10 @@ FSDataOutputStream create(Path P,
   <<<concat>>> -by changing the inode references to join them together in 
   a sequence.
   
-~~ ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+~~ =============================================================
+~~ CLASS: FSDataOutputStream
+~~ INTERFACE: Seekable
+~~ =============================================================
 
 * FSDataOutputStream extends DataOutputStream implements Syncable
 
@@ -1035,7 +1150,11 @@ public interface Syncable {
 
   
 
-~~ ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+~~ =============================================================
+~~ INTERFACE: Seekable
+~~ INTERFACE: InputStream
+~~ INTERFACE: PositionedReadable
+~~ =============================================================
 
 * InputStream, Seekable and PositionedReadable
 
