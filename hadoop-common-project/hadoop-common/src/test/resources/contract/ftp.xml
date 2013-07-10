@@ -73,6 +73,11 @@
   </property>
 
   <property>
+    <name>fs.ftp.contract.supports-strict-exceptions</name>
+    <value>true</value>
+  </property>
+  
+  <property>
     <name>fs.ftp.contract.supports-unix-permissions</name>
     <value>false</value>
   </property>

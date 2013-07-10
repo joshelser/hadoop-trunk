@@ -68,11 +68,17 @@
     <value>true</value>
   </property>
 
+  <!-- checksum FS doesn't allow seeing past EOF -->
   <property>
     <name>fs.file.contract.supports-seek-past-eof</name>
-    <value>true</value>
+    <value>false</value>
   </property>
 
+  <property>
+    <name>fs.file.contract.supports-strict-exceptions</name>
+    <value>false</value>
+  </property>
+  
   <property>
     <name>fs.file.contract.supports-unix-permissions</name>
     <value>true</value>

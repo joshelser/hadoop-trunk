@@ -78,6 +78,11 @@
   </property>
 
   <property>
+    <name>fs.s3n.contract.supports-strict-exceptions</name>
+    <value>true</value>
+  </property>
+
+  <property>
     <name>fs.s3n.contract.supports-unix-permissions</name>
     <value>false</value>
   </property>

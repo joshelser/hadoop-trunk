@@ -79,6 +79,14 @@ public interface ContractOptions {
   String SUPPORTS_SEEK_PAST_EOF = "supports-seek-past-eof";
 
   /**
+   * Flag to indicate that this FS expects to throw the strictest
+   * exceptions it can, not generic IOEs, which, if returned,
+   * must be rejected.
+   * @{value}
+   */
+  String SUPPORTS_STRICT_EXCEPTIONS = "supports-strict-exceptions";
+
+  /**
    * @{value}
    */
   String SUPPORTS_UNIX_PERMISSIONS = "supports-unix-permissions";

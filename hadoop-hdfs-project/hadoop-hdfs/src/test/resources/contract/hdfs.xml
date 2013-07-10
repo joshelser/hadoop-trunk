@@ -26,7 +26,6 @@
     <value>true</value>
   </property>
 
-
   <property>
     <name>fs.file.contract.test.random-seek-count</name>
     <value>500</value>
@@ -70,6 +69,11 @@
   <property>
     <name>fs.hdfs.contract.supports-seek-past-eof</name>
     <value>false</value>
+  </property>
+
+  <property>
+    <name>fs.hdfs.contract.supports-strict-exceptions</name>
+    <value>true</value>
   </property>
 
   <property>
