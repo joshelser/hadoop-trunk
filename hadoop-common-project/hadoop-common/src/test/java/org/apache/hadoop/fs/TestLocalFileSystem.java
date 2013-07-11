@@ -216,7 +216,7 @@ public class TestLocalFileSystem {
     try {
       fileSys.mkdirs(bad_dir);
       fail("Failed to detect existing file in path");
-    } catch (FileAlreadyExistsException e) { 
+    } catch (ParentNotDirectoryException e) { 
       // Expected
     }
     
