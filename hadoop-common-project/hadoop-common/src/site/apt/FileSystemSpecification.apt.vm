@@ -757,26 +757,6 @@ FSDataOutputStream create(Path P,
 ~~ METHOD: delete()
 ~~ =============================================================
 
-
-** <<<FileSystem.delete(Path P, boolean recursive)>>>
-
-  Preconditions
-
------------
-
-
-  # a directory with children and recursive == false cannot be deleted
-  # raise IOException
-  isDir(FS, P) => (recursive || childen(FS, P) == {} )
-
-  
------------
-
-  Postconditions
-
------------
-  
-
 ** <<<FileSystem.delete(Path P, boolean recursive)>>>
 
   Preconditions
@@ -1253,10 +1233,11 @@ public interface Seekable {
     declare that this elision can ignore that possibility?>
   
     [[1]] On <<<S.seek(P)>>> with <P < 0> an exception MUST be thrown.
-    It SHOULD be an <<<IOException>>>. It MAY be an <<<IllegalArgumentException >>>
+    It SHOULD be an <<<EOFException>>>. It MAY be an
+     <<<IOException>>>, an <<<IllegalArgumentException >>>
     or other <<<RuntimeException>>>.
   
-    [[1]] On <<<S.seek(P)>>> with <P>><length(F)>, an <<<IOException>>> MAY be thrown.
+    [[1]] <<<S.seek(0)>>> must succeed even if the file length is 0
   
     [[1]]  For all values of <P> in <Long> if <<<S.seek(P)>>> does not raise
      an Exception, it is considered a successful seek.
