@@ -50,6 +50,9 @@ public interface PortmapInterface {
     }
     
     public static Procedure fromValue(int value) {
+      if (value < 0 || value >= values().length) {
+        return null;
+      }
       return values()[value];
     }
   }
