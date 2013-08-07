@@ -6,6 +6,8 @@ Release 2.1.1-beta - UNRELEASED
 
   NEW FEATURES
 
+    HDFS-5071 Change hdfs-nfs parent project to hadoop-project (brandonli)
+
   IMPROVEMENTS
 
   OPTIMIZATIONS
