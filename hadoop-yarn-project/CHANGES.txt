@@ -26,6 +26,10 @@ Release 2.1.1-beta - UNRELEASED
     YARN-1094. Fixed a blocker with RM restart code because of which RM crashes
     when try to recover an existing app. (vinodkv)
 
+    YARN-107. Fixed ResourceManager and clients to better handle
+    forceKillApplication on non-running and finished applications. (Xuan Gong
+    via vinodkv)
+
 Release 2.1.0-beta - 2013-08-22
 
   INCOMPATIBLE CHANGES
