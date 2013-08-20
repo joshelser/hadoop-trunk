@@ -26,6 +26,9 @@ Release 2.1.1-beta - UNRELEASED
 
   IMPROVEMENTS
 
+    HDFS-5111. Remove duplicated error message for snapshot commands when 
+    processing invalid arguments. (jing9)
+
   OPTIMIZATIONS
 
   BUG FIXES
