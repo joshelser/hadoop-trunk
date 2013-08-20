@@ -33,6 +33,9 @@ Release 2.1.1-beta - UNRELEASED
     HDFS-5080. BootstrapStandby not working with QJM when the existing NN is 
     active. (jing9)
 
+    HDFS-4594. WebHDFS open sets Content-Length header to what is specified by
+    length parameter rather than how much data is actually returned. (cnauroth)
+
 Release 2.1.0-beta - 2013-08-22
 
   INCOMPATIBLE CHANGES
