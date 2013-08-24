@@ -27,7 +27,6 @@ import org.junit.Test;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 
-import static org.apache.hadoop.fs.contract.ContractTestUtils.assertPathExists;
 import static org.apache.hadoop.fs.contract.ContractTestUtils.dataset;
 import static org.apache.hadoop.fs.contract.ContractTestUtils.writeDataset;
 import static org.apache.hadoop.fs.contract.ContractTestUtils.writeTextFile;
@@ -104,15 +103,15 @@ public abstract class AbstractCreateContractTest extends
     }
     assertIsDirectory(path);
   }
-  
+
   @Test
   public void testOverwriteNonEmptyDirectory() throws Throwable {
     describe("verify trying to create a file over a non-empty dir fails");
     Path path = path("testOverwriteNonEmptyDirectory");
     mkdirs(path);
     assertIsDirectory(path);
-    Path child = new Path(path,"child");
-    writeTextFile(getFileSystem(),child,"child file",true);
+    Path child = new Path(path, "child");
+    writeTextFile(getFileSystem(), child, "child file", true);
     byte[] data = dataset(256, 'a', 'z');
     try {
       writeDataset(getFileSystem(), path, data, data.length, 1024, true);
@@ -145,7 +144,8 @@ public abstract class AbstractCreateContractTest extends
                                    4096,
                                    (short) 1,
                                    1024);
-      assertPathExists("expected path to be visible before anything written",path);
+      assertPathExists("expected path to be visible before anything written",
+                       path);
     } finally {
       IOUtils.closeStream(out);
     }

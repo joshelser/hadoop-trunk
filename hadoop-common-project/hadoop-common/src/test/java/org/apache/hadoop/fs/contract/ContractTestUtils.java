@@ -633,11 +633,11 @@ public class ContractTestUtils extends Assert {
   //
 
   /**
-   * compare content of concatenated operations
+   * compare content of file operations using a double byte array
    * @param concat concatenated files
    * @param bytes bytes
    */
-  public static void checkConcatFileContent(byte[] concat, byte[][] bytes) {
+  public static void validateFileContent(byte[] concat, byte[][] bytes) {
     int idx = 0;
     boolean mismatch = false;
 
@@ -651,7 +651,7 @@ public class ContractTestUtils extends Assert {
       if (mismatch)
         break;
     }
-    assertFalse("File content of concatenated file is different at offse " + idx,
+    assertFalse("File content of file is not as expected at offset " + idx,
                 mismatch);
   }
 

@@ -23,8 +23,6 @@ import org.apache.commons.logging.LogFactory;
 import org.apache.hadoop.fs.Path;
 import org.junit.Test;
 
-import java.io.IOException;
-
 import static org.apache.hadoop.fs.contract.ContractTestUtils.assertFileHasLength;
 import static org.apache.hadoop.fs.contract.ContractTestUtils.cleanup;
 import static org.apache.hadoop.fs.contract.ContractTestUtils.createFile;
@@ -95,10 +93,10 @@ public abstract class AbstractConcatContractTest extends AbstractFSContractTestB
     getFileSystem().concat(target,
                            new Path[] {srcFile});
     assertFileHasLength(getFileSystem(), target, TEST_FILE_LEN *2);
-    ContractTestUtils.checkConcatFileContent(
+    ContractTestUtils.validateFileContent(
       ContractTestUtils.readDataset(getFileSystem(),
-                                    target, TEST_FILE_LEN *2),
-      new byte[][] {block, block});
+                                    target, TEST_FILE_LEN * 2),
+      new byte[][]{block, block});
   }
   
   @Test
