@@ -221,7 +221,8 @@ Apache Hadoop FileSystem Specification
     write operation is in progress.
   
   * If a client opens a file for a <<<read()>>> operation while another <<<read()>>>
-    operation is in progress, the second operation MUST succeed. Both clients
+    operation is in progress, the second operation MUST succeed. 
+    Provided no writes/appends take place during this period both clients
     MUST have a consistent view of the same data.
   
   * If a file is deleted while a <<<read()>>> operation is in progress, the
