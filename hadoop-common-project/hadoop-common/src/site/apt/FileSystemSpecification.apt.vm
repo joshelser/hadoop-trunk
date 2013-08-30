@@ -95,6 +95,13 @@ Apache Hadoop FileSystem Specification
     
     * You cannot rename/move a directory atop any existing file other than the
       source file itself.
+      
+    * Directory listings return all the data files in the directory (i.e.
+    there may be hidden checksum files, but all the data files are listed).
+    
+    * The attributes of a file in a directory listing (e.g. owner, length) match
+     the actual attributes of a file, and are consistent with the view from an
+     opened file reference. 
     
     * Security: If you don't have the permissions for an operation, it will fail
       with some kind of error.
@@ -705,8 +712,8 @@ FSDataOutputStream create(Path P,
 
 -----------
 
-    !exists(FS, P) => throw FileNotFoundException
-    !isFile(FS, P))=> throw FileNotFoundException or IOException
+    exists(FS, P) else raise FileNotFoundException
+    !isFile(FS, P)) else raise FileNotFoundException or IOException
 
 -----------
 
@@ -734,8 +741,8 @@ FSDataOutputStream create(Path P,
 
 -----------
 
-    !exists(FS, P) => throw FileNotFoundException
-    !isFile(FS, P))=> throw FileNotFoundException or IOException
+    !exists(FS, P) else raise FileNotFoundException
+    !isFile(FS, P)) else raise FileNotFoundException or IOException
 -----------
 
   Postconditions
@@ -914,7 +921,7 @@ FSDataOutputStream create(Path P,
 -----------
 
   #path must exist
-  exists(FS, P) || throw FileNotFoundException
+  exists(FS, P) else raise FileNotFoundException
   
 -----------
 
@@ -951,7 +958,7 @@ FSDataOutputStream create(Path P,
 
 -----------
 
-  S > 0  && L >= 0  ||  throw InvalidArgumentException
+  S > 0  && L >= 0  else raise InvalidArgumentException
   
 -----------
 
@@ -965,7 +972,7 @@ FSDataOutputStream create(Path P,
 -----------
 
   If the filesystem is location aware, it must return the list
-  of block locations where the data in the range S - S+L can be found.
+  of block locations where the data in the range (S, S+L ) can be found.
   
   If the filesystem is not location aware, it SHOULD return
 
@@ -1004,8 +1011,8 @@ FSDataOutputStream create(Path P,
 
 -----------
 
-  P != null || throw NullPointerException
-  exists(FS, P) || throw FileNotFoundException
+  P != null else raise NullPointerException
+  exists(FS, P) else raise FileNotFoundException
   
 -----------
 
@@ -1059,12 +1066,12 @@ FSDataOutputStream create(Path P,
 
 -----------
 
-    Srcs!=[] || throw IllegalArgumentException
+    Srcs!=[] else raise IllegalArgumentException
     exists(FS, T)
     
     # all sources MUST be in the same directory
     forall S in Srcs: parent(S) == parent(T) 
-      || throw IllegalArgumentException
+      else raise IllegalArgumentException
     
     #HDFS: all block sizes to match the target
     forall S in Srcs: getBlockSize(FS, S) == getBlockSize(FS, T)
