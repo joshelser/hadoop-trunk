@@ -713,7 +713,8 @@ FSDataOutputStream create(Path P,
 -----------
 
     exists(FS, P) else raise FileNotFoundException
-    !isFile(FS, P)) else raise FileNotFoundException or IOException
+    isFile(FS, P)) else raise FileNotFoundException or IOException
+    
 
 -----------
 

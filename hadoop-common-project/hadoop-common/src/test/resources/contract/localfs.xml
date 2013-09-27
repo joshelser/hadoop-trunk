@@ -38,9 +38,12 @@
     <value>true</value>
   </property>
 
+  <!--
+  checksummed filesystems do not support append; see HADOOP-4292
+  -->
   <property>
     <name>fs.file.contract.supports-append</name>
-    <value>true</value>
+    <value>false</value>
   </property>
 
   <property>

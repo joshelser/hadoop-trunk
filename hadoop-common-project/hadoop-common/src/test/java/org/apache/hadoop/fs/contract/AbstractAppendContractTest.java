@@ -78,7 +78,6 @@ public abstract class AbstractAppendContractTest extends AbstractFSContractTestB
 
   @Test
   public void testAppendToExistingFile() throws Throwable {
-    touch(getFileSystem(), target);
     byte[] original = dataset(8192, 'A', 'Z');
     byte[] appended = dataset(8192, '0', '9');
     createFile(getFileSystem(), target, false, original);
