@@ -24,12 +24,7 @@ import org.apache.hadoop.fs.FSDataOutputStream;
 import org.apache.hadoop.fs.Path;
 import org.junit.Test;
 
-import static org.apache.hadoop.fs.contract.ContractTestUtils.assertFileHasLength;
-import static org.apache.hadoop.fs.contract.ContractTestUtils.assertPathDoesNotExist;
-import static org.apache.hadoop.fs.contract.ContractTestUtils.cleanup;
-import static org.apache.hadoop.fs.contract.ContractTestUtils.createFile;
-import static org.apache.hadoop.fs.contract.ContractTestUtils.dataset;
-import static org.apache.hadoop.fs.contract.ContractTestUtils.touch;
+import static org.apache.hadoop.fs.contract.ContractTestUtils.*;
 
 /**
  * Test concat -if supported
@@ -48,11 +43,7 @@ public abstract class AbstractAppendContractTest extends AbstractFSContractTestB
 
     //delete the test directory
     testPath = path("test");
-    srcFile = new Path(testPath, "small.txt");
     target = new Path(testPath, "target");
-
-    byte[] block = dataset(TEST_FILE_LEN, 0, 255);
-    createFile(getFileSystem(), srcFile, false, block);
   }
 
   @Override
@@ -109,15 +100,19 @@ public abstract class AbstractAppendContractTest extends AbstractFSContractTestB
   @Test
   public void testRenameFileBeingAppended() throws Throwable {
     touch(getFileSystem(), target);
+    assertPathExists("original file does not exist", target);
     byte[] dataset = dataset(256, 'a', 'z');
     FSDataOutputStream outputStream = getFileSystem().append(target);
     outputStream.write(dataset);
     Path renamed = new Path(testPath, "renamed");
     outputStream.close();
+    String listing = ls(testPath);
+    
 
     //expected: the stream goes to the file that was being renamed, not
     //the original path
-    assertPathDoesNotExist("Path renamed during append still present", target);
+    assertPathDoesNotExist("Original filename still found after append:\n" +
+                           listing, target);
     byte[] bytes = ContractTestUtils.readDataset(getFileSystem(), renamed,
                                                  dataset.length);
     ContractTestUtils.compareByteArrays(dataset, bytes, dataset.length);
