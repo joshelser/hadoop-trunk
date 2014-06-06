@@ -611,7 +611,7 @@ public class StringUtils {
    * @param msg content of the message
    * @return a message for logging
    */
-  private static String toStartupShutdownString(String prefix, String [] msg) {
+  public static String toStartupShutdownString(String prefix, String [] msg) {
     StringBuilder b = new StringBuilder(prefix);
     b.append("\n/************************************************************");
     for(String s : msg)
@@ -631,18 +631,7 @@ public class StringUtils {
     final String hostname = NetUtils.getHostname();
     final String classname = clazz.getSimpleName();
     LOG.info(
-        toStartupShutdownString("STARTUP_MSG: ", new String[] {
-            "Starting " + classname,
-            "  host = " + hostname,
-            "  args = " + Arrays.asList(args),
-            "  version = " + VersionInfo.getVersion(),
-            "  classpath = " + System.getProperty("java.class.path"),
-            "  build = " + VersionInfo.getUrl() + " -r "
-                         + VersionInfo.getRevision()  
-                         + "; compiled by '" + VersionInfo.getUser()
-                         + "' on " + VersionInfo.getDate(),
-            "  java = " + System.getProperty("java.version") }
-        )
+        createStartupShutdownMessage(classname, hostname, args)
       );
 
     if (SystemUtils.IS_OS_UNIX) {
@@ -661,6 +650,29 @@ public class StringUtils {
         }
       }, SHUTDOWN_HOOK_PRIORITY);
 
+  }
+
+  /**
+   * Generate the text for the startup/shutdown message of processes 
+   * @param classname short classname of the class
+   * @param hostname hostname
+   * @param args Command arguments
+   * @return a string to log.
+   */
+  public static String createStartupShutdownMessage(String classname,
+      String hostname, String[] args) {
+    return toStartupShutdownString("STARTUP_MSG: ", new String[] {
+        "Starting " + classname,
+        "  host = " + hostname,
+        "  args = " + Arrays.asList(args),
+        "  version = " + VersionInfo.getVersion(),
+        "  classpath = " + System.getProperty("java.class.path"),
+        "  build = " + VersionInfo.getUrl() + " -r "
+                     + VersionInfo.getRevision()  
+                     + "; compiled by '" + VersionInfo.getUser()
+                     + "' on " + VersionInfo.getDate(),
+        "  java = " + System.getProperty("java.version") }
+    );
   }
 
   /**
